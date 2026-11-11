@@ -1,0 +1,2 @@
+/** Nome do produto, compartilhado entre os apps. */
+export const PRODUCT_NAME = "Nexo Assist";
