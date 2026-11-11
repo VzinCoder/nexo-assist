@@ -164,6 +164,15 @@ Sempre tratar estados de carregamento, vazio e erro. Console atualiza por pollin
   Manter `.env.example` atualizado.
 - Funções puras para regras de negócio; efeitos (HTTP, banco) nas bordas.
 - Nomes de código em inglês; textos da UI e respostas do agent em português.
+## MCPs disponíveis
+
+- **mastra** (docs): consulte **antes** de escrever ou alterar qualquer código do Mastra (Agent, tools,
+  runtime context, streaming, integração com Next). Não confie em APIs de memória; a lib muda rápido.
+- **context7**: consulte a documentação atual de Next.js (App Router), Fastify, Drizzle, AI SDK e zod
+  quando houver dúvida de API ou versão.
+- **pencil**: fonte da verdade da interface. Antes de implementar uma tela, leia a tela correspondente no
+  arquivo .pen e siga layout, espaçamentos, cores e componentes. Não altere o arquivo de design.
+
 ## Git
 
 - **Nunca execute `git commit`, `git push` ou qualquer comando que altere o histórico.** Os commits são
