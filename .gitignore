@@ -1,0 +1,32 @@
+# Dependências
+node_modules/
+
+# Builds e caches
+.next/
+dist/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+.turbo/
+.vite/
+
+# Bancos SQLite locais
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Variáveis de ambiente (só os exemplos são versionados)
+.env
+.env.*
+!.env.example
+
+# Logs e SO
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db

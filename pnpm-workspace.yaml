@@ -1,0 +1,7 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Dependências autorizadas a rodar scripts de instalação (pnpm bloqueia as demais).
+allowBuilds:
+  esbuild: true
