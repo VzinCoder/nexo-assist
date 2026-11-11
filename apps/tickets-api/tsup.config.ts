@@ -1,0 +1,13 @@
+import { defineConfig } from "tsup";
+
+export default defineConfig({
+  entry: { server: "src/server.ts" },
+  format: ["esm"],
+  platform: "node",
+  target: "node24",
+  outDir: "dist",
+  clean: true,
+  sourcemap: true,
+  // Pacotes internos exportam TypeScript; precisam ir para dentro do bundle.
+  noExternal: [/^@nexo\//],
+});
