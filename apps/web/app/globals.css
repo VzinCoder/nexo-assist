@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* Tokens extraídos do protótipo (Pencil). */
+@theme {
+  --font-sans: var(--font-schibsted-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-newsreader), ui-serif, Georgia, serif;
+
+  --color-desk: #f6f7f9;
+  --color-paper: #ffffff;
+  --color-ink: #1b2431;
+  --color-ink-2: #3d4656;
+  --color-ink-3: #5b6472;
+  --color-rule: #e6e8ec;
+  --color-cta: #0062c4;
+}
+
+body {
+  background-color: var(--color-desk);
+  color: var(--color-ink);
+}
