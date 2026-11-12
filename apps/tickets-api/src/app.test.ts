@@ -1,18 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { buildApp } from "./app";
 import { AppError } from "./plugins/errors";
+import { createTestApp, type TestApp } from "./testing";
 
 describe("tickets-api", () => {
+  let testApp: TestApp;
   let app: FastifyInstance;
 
   beforeEach(() => {
-    app = buildApp();
+    testApp = createTestApp();
+    app = testApp.app;
   });
 
   afterEach(async () => {
-    await app.close();
+    await testApp.close();
   });
 
   it("GET /health responde 200 com JSON { status: 'ok' } sem identificação", async () => {
