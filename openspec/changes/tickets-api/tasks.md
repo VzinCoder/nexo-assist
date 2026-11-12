@@ -39,7 +39,7 @@
 
 ## 9. tickets-api: funcionários e central de ajuda
 
-- [ ] 9.1 Implementar `search/keywords.ts` (normalização, stopwords, pontuação); verificar com testes de acento, palavras curtas/vazias e ordenação por pontuação
+- [x] 9.1 Implementar `search/keywords.ts` (normalização, stopwords, pontuação); verificar com testes de acento, palavras curtas/vazias e ordenação por pontuação
 - [ ] 9.2 Implementar `GET /employees/by-email/:email` e `GET /kb/articles?q=`; verificar com testes de e-mail com maiúsculas, desconhecido (404), inválido (400), `q=vpn erro 809` com o artigo da VPN em primeiro, `q=horario`, só stopwords (vazio) e sem `q` (todos por título)
 
 ## 10. tickets-api: chamados
