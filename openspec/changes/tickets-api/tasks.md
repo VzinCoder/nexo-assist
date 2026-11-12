@@ -35,7 +35,7 @@
 ## 8. tickets-api: acesso e instabilidade
 
 - [x] 8.1 Reestruturar `buildApp(options)` com dependências injetáveis (`db`, `serviceToken`, `failureRate`, `latencyMs`, `now`, `random`, `sleep`) e criar os plugins `instability` (latência → descarte se o cliente desconectou → falha 503) e `service-auth` (token com `timingSafeEqual`), mantendo `/health` fora deles; verificar com testes: 401 sem token e com token errado, `FAILURE_RATE=1` → 503 em `/tickets` e 200 em `/health`, `POST /tickets` com falha não cria chamado, `sleep` falso chamado com `LATENCY_MS` e não chamado em `/health`
-- [ ] 8.2 Criar `plugins/employee-context.ts` (`X-Employee-Id` ausente → 400, inexistente → 401, decora `request.employee`); verificar com testes dos dois casos de erro
+- [x] 8.2 Criar `plugins/employee-context.ts` (`X-Employee-Id` ausente → 400, inexistente → 401, decora `request.employee`); verificar com testes dos dois casos de erro
 
 ## 9. tickets-api: funcionários e central de ajuda
 
