@@ -175,14 +175,17 @@ Sempre tratar estados de carregamento, vazio e erro. Console atualiza por pollin
 
 ## Git
 
-- **Nunca execute `git commit`, `git push` ou qualquer comando que altere o histórico.** Os commits são
-  feitos pelo desenvolvedor.
-- Ao terminar cada tarefa, liste os arquivos alterados e **sugira** a(s) mensagem(ns) de commit,
-  agrupando as mudanças em commits pequenos e coerentes.
-- Padrão das mensagens: Conventional Commits, prefixo em inglês (`feat:`, `fix:`, `test:`, `docs:`,
-  `chore:`, `refactor:`) e descrição em português, no imperativo.
-  Ex.: `feat: adiciona seed de chamados no tickets-api`.
-
+- Commits pequenos e coerentes: um por task concluída, somente depois que os
+  testes e o typecheck dela passarem.
+- `git add` com os arquivos específicos da mudança, nunca `git add .`.
+  Conferir com `git status` que nenhum `.env`, arquivo `.db` ou configuração
+  local de editor entra no commit.
+- Mensagem contendo apenas o título no padrão abaixo, sem rodapés ou trailers.
+- Nunca executar `git push`, `git rebase` ou `git reset`.
+- Padrão das mensagens: Conventional Commits, prefixo em inglês (`feat:`,
+  `fix:`, `test:`, `docs:`, `chore:`, `refactor:`) e descrição em português,
+  no imperativo. Ex.: `feat: adiciona seed de chamados no tickets-api`.
+  
 ## Testes (onde fazem diferença)
 
 - Regras puras: cálculo de prazo em horas úteis, vencimento, prioridade.
