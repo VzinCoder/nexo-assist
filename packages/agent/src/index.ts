@@ -14,9 +14,29 @@
  *   `createUIMessageStream` + `createUIMessageStreamResponse` do `ai@7`; cliente com `useChat`.
  * - Testes: `MastraLanguageModelV2Mock` de `@mastra/core/test-utils/llm-mock` com `doStream` roteirizado.
  */
-import { PRODUCT_NAME } from "@nexo/shared";
-
-export const AGENT_NAME = `${PRODUCT_NAME} Agent`;
+export { AGENT_ID, AGENT_NAME, AGENT_DISPLAY_NAME } from "./constants";
+export {
+  createNexoAgent,
+  streamNexoReply,
+  toModelMessages,
+  MAX_STEPS,
+  MAX_OUTPUT_TOKENS,
+  CONTEXT_MESSAGES,
+  type NexoAgent,
+  type NexoAgentOptions,
+  type HistoryMessage,
+} from "./agent";
+export { buildInstructions } from "./instructions";
+export {
+  collectTurn,
+  classifyProviderError,
+  MISSING_DECISION,
+  PROVIDER_ERROR_MESSAGES,
+  TOOL_LABELS,
+  type CollectedTurn,
+  type ProviderErrorCode,
+  type RawToolResult,
+} from "./turn";
 
 export { createNexoRequestContext, getSessionIds, type NexoSessionIds, type NexoRequestContext } from "./context";
 export type { ConversationStore, DraftStore, NexoAgentDeps } from "./ports";
