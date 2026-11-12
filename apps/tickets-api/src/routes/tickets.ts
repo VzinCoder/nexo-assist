@@ -1,5 +1,8 @@
 import {
+  commentBodySchema,
   createTicketBodySchema,
+  escalateBodySchema,
+  reopenBodySchema,
   similarBodySchema,
   ticketListQuerySchema,
   ticketParamsSchema,
@@ -10,13 +13,16 @@ import {
 import type { FastifyInstance } from "fastify";
 import type { RouteDeps } from "../app";
 import { currentEmployee, registerEmployeeContext } from "../plugins/employee-context";
-import { AppError } from "../plugins/errors";
 import { findTicket, listComments, listTickets } from "../tickets/repository";
 import { toTicket, toTicketSummary } from "../tickets/serialize";
-import { createTicket, findSimilarTickets } from "../tickets/service";
-
-/** Mesmo erro para inexistente e para chamado de outro funcionário. */
-export const ticketNotFound = () => new AppError("not_found", "Chamado não encontrado.");
+import {
+  addComment,
+  createTicket,
+  escalateTicket,
+  findSimilarTickets,
+  reopenTicket,
+  ticketNotFound,
+} from "../tickets/service";
 
 /** Rotas sob `/tickets`; todas exigem `X-Employee-Id` e só enxergam chamados desse funcionário. */
 export function registerTicketRoutes(scope: FastifyInstance, deps: RouteDeps): void {
@@ -51,6 +57,25 @@ export function registerTicketRoutes(scope: FastifyInstance, deps: RouteDeps): v
         const row = findTicket(db, employeeId, id);
         if (!row) throw ticketNotFound();
         return toTicket(row, listComments(db, employeeId, id), now());
+      });
+
+      tickets.post("/:id/comments", async (request, reply) => {
+        const { id } = ticketParamsSchema.parse(request.params);
+        const { text } = commentBodySchema.parse(request.body);
+        const ticket = addComment(db, currentEmployee(request).id, id, text, now());
+        return reply.code(201).send(ticket);
+      });
+
+      tickets.post("/:id/reopen", async (request): Promise<Ticket> => {
+        const { id } = ticketParamsSchema.parse(request.params);
+        const { comment } = reopenBodySchema.parse(request.body ?? {});
+        return reopenTicket(db, currentEmployee(request).id, id, comment, now());
+      });
+
+      tickets.post("/:id/escalate", async (request): Promise<Ticket> => {
+        const { id } = ticketParamsSchema.parse(request.params);
+        const body = escalateBodySchema.parse(request.body);
+        return escalateTicket(db, currentEmployee(request).id, id, body, now());
       });
     },
     { prefix: "/tickets" },

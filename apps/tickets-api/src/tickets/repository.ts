@@ -17,7 +17,7 @@ import {
  */
 
 /** Transação síncrona do driver ou o próprio banco (mesma API de consulta). */
-type Executor = Pick<Db, "select" | "insert" | "update">;
+export type Executor = Pick<Db, "select" | "insert" | "update">;
 
 export type CommentWithAuthor = {
   id: number;
