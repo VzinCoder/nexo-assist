@@ -16,7 +16,7 @@
 
 ## 4. @nexo/shared: cliente HTTP
 
-- [ ] 4.1 Implementar `client/errors.ts` (`TicketsClientError`, `TicketsUnavailableError`, `TicketNotFoundError`, `TicketConflictError`) e `client/tickets-client.ts` (`createTicketsClient` com headers, timeout por tentativa, retry só em 503/timeout com backoff `baseDelayMs × 2^(n−1)`, validação da resposta); verificar com testes de `fetch` falso: 503→200 (2 chamadas), 3× 503 (3 chamadas + `TicketsUnavailableError`), timeout esgotado, 404 com 1 chamada, 409 → `TicketConflictError` com mensagem, conexão recusada, corpo fora do schema, headers enviados
+- [x] 4.1 Implementar `client/errors.ts` (`TicketsClientError`, `TicketsUnavailableError`, `TicketNotFoundError`, `TicketConflictError`) e `client/tickets-client.ts` (`createTicketsClient` com headers, timeout por tentativa, retry só em 503/timeout com backoff `baseDelayMs × 2^(n−1)`, validação da resposta); verificar com testes de `fetch` falso: 503→200 (2 chamadas), 3× 503 (3 chamadas + `TicketsUnavailableError`), timeout esgotado, 404 com 1 chamada, 409 → `TicketConflictError` com mensagem, conexão recusada, corpo fora do schema, headers enviados
 
 ## 5. tickets-api: ambiente e erros
 
