@@ -30,7 +30,7 @@
 ## 7. tickets-api: seed
 
 - [x] 7.1 Ler no Pencil (somente leitura) os nomes do funcionário e dos analistas exibidos nas telas e usá-los no seed; implementar `seed/data.ts` (`buildSeed(now)`: 4–5 funcionários de áreas diferentes, analistas N1/N2, 8 artigos incluindo VPN 809 e horário do service desk, chamados do principal e de outros dois funcionários com comentários, `dueAt` via `computeDueAt`, regra 5 d/4 d do REQ-10442); verificar com teste da grade de 168 horas cheias de uma semana e do caso sexta 19h
-- [ ] 7.2 Implementar `seed/apply.ts` (apaga e insere em transação), `seed/cli.ts` e o script `seed` do `package.json`; aplicar seed automático em `server.ts` quando não houver funcionários; verificar com teste de idempotência (duas aplicações, mesmo conteúdo; chamado criado entre elas some) e rodando `pnpm --filter @nexo/tickets-api seed` duas vezes
+- [x] 7.2 Implementar `seed/apply.ts` (apaga e insere em transação), `seed/cli.ts` e o script `seed` do `package.json`; aplicar seed automático em `server.ts` quando não houver funcionários; verificar com teste de idempotência (duas aplicações, mesmo conteúdo; chamado criado entre elas some) e rodando `pnpm --filter @nexo/tickets-api seed` duas vezes
 
 ## 8. tickets-api: acesso e instabilidade
 
