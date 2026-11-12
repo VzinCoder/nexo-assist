@@ -46,7 +46,7 @@
 
 - [x] 10.1 Implementar `tickets/repository.ts` (toda consulta filtrada por `employeeId`, próximo id por tipo em transação) e `GET /tickets?status=` e `GET /tickets/:id`; verificar com testes: lista só do próprio funcionário ordenada por `updatedAt`, filtro por status, status inválido (400), lista vazia, detalhe com comentários e `isOverdue` de INC-20311, id malformado (400), chamado de B pedido por A → 404 igual ao inexistente
 - [x] 10.2 Implementar `POST /tickets`; verificar com testes: 201 com status `open` e `dueAt` conforme prioridade, campo faltando (400 citando o campo, nada criado), título vazio, ids INC-20312 e sequência REQ independente
-- [ ] 10.3 Implementar `POST /tickets/similar`; verificar com testes dos cenários de notebook lento (INC-20311, `reopenable` false), SAP (INC-20150, `reopenable` true), resolvido há mais de 7 dias fora e chamado alheio fora, limite de 5
+- [x] 10.3 Implementar `POST /tickets/similar`; verificar com testes dos cenários de notebook lento (INC-20311, `reopenable` false), SAP (INC-20150, `reopenable` true), resolvido há mais de 7 dias fora e chamado alheio fora, limite de 5
 - [ ] 10.4 Implementar `POST /tickets/:id/comments`, `/reopen` e `/escalate` com recálculo de `updatedAt`/`dueAt`; verificar com testes: comentário tira INC-20311 do vencido, comentário em resolvido → 409, reabertura dentro (200, `open`, `resolvedAt` null, comentário `reopen`) e fora da janela (409, inalterado), reabrir não resolvido → 409, transferência (200, `waiting_analyst`, comentário `escalation`), sem `summary` → 400, transferir resolvido → 409, e A agindo em chamado de B → 404 sem alteração nas três rotas
 
 ## 11. Integração e documentação

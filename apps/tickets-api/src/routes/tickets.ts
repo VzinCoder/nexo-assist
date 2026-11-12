@@ -1,7 +1,9 @@
 import {
   createTicketBodySchema,
+  similarBodySchema,
   ticketListQuerySchema,
   ticketParamsSchema,
+  type SimilarTicket,
   type Ticket,
   type TicketSummary,
 } from "@nexo/shared";
@@ -11,7 +13,7 @@ import { currentEmployee, registerEmployeeContext } from "../plugins/employee-co
 import { AppError } from "../plugins/errors";
 import { findTicket, listComments, listTickets } from "../tickets/repository";
 import { toTicket, toTicketSummary } from "../tickets/serialize";
-import { createTicket } from "../tickets/service";
+import { createTicket, findSimilarTickets } from "../tickets/service";
 
 /** Mesmo erro para inexistente e para chamado de outro funcionário. */
 export const ticketNotFound = () => new AppError("not_found", "Chamado não encontrado.");
@@ -36,6 +38,11 @@ export function registerTicketRoutes(scope: FastifyInstance, deps: RouteDeps): v
         const body = createTicketBodySchema.parse(request.body);
         const ticket = createTicket(db, currentEmployee(request).id, body, now());
         return reply.code(201).send(ticket);
+      });
+
+      tickets.post("/similar", async (request): Promise<SimilarTicket[]> => {
+        const { text } = similarBodySchema.parse(request.body);
+        return findSimilarTickets(db, currentEmployee(request).id, text, now());
       });
 
       tickets.get("/:id", async (request): Promise<Ticket> => {
