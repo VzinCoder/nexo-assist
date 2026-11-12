@@ -1,4 +1,5 @@
 import {
+  createTicketBodySchema,
   ticketListQuerySchema,
   ticketParamsSchema,
   type Ticket,
@@ -10,6 +11,7 @@ import { currentEmployee, registerEmployeeContext } from "../plugins/employee-co
 import { AppError } from "../plugins/errors";
 import { findTicket, listComments, listTickets } from "../tickets/repository";
 import { toTicket, toTicketSummary } from "../tickets/serialize";
+import { createTicket } from "../tickets/service";
 
 /** Mesmo erro para inexistente e para chamado de outro funcionário. */
 export const ticketNotFound = () => new AppError("not_found", "Chamado não encontrado.");
@@ -28,6 +30,12 @@ export function registerTicketRoutes(scope: FastifyInstance, deps: RouteDeps): v
         return listTickets(db, currentEmployee(request).id, status).map((row) =>
           toTicketSummary(row, at),
         );
+      });
+
+      tickets.post("/", async (request, reply) => {
+        const body = createTicketBodySchema.parse(request.body);
+        const ticket = createTicket(db, currentEmployee(request).id, body, now());
+        return reply.code(201).send(ticket);
       });
 
       tickets.get("/:id", async (request): Promise<Ticket> => {
