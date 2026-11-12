@@ -17,18 +17,56 @@ por quê**. Monorepo pnpm com TypeScript strict.
 ## Como rodar
 
 ```bash
-pnpm install
-cp apps/web/.env.example apps/web/.env      # coloque GOOGLE_GENERATIVE_AI_API_KEY
-pnpm --filter @nexo/tickets-api seed        # (opcional) recria os dados de exemplo
-pnpm dev                                    # web em http://localhost:3000, tickets-api em :3001
+pnpm setup      # confere o Node, instala, cria apps/*/.env, roda o seed e as migrações do web
+                # cole a chave em GOOGLE_GENERATIVE_AI_API_KEY no arquivo apps/web/.env
+pnpm dev        # web em http://localhost:3000, tickets-api em http://localhost:3001
 ```
 
-Abra http://localhost:3000 e entre com `ana.souza@nexo.com.br` e **qualquer senha** (funcionária
-principal do seed). Analistas (`juliana.alves@nexo.com.br`) vão para `/console`.
+1. **`pnpm setup`** (script em `scripts/setup.mjs`): verifica se o Node é 24 ou superior, roda
+   `pnpm install`, copia cada `apps/*/.env.example` para `apps/*/.env` **só se o `.env` ainda não
+   existir**, recria os dados de exemplo do tickets-api (seed) e aplica as migrações do banco do web.
+   Pode ser repetido; atenção: o seed apaga os chamados criados durante os testes.
+2. **Chave do Gemini**: gere em [Google AI Studio](https://aistudio.google.com) ("Get API key", nível
+   gratuito) e cole em `GOOGLE_GENERATIVE_AI_API_KEY=` no `apps/web/.env`. As demais variáveis já vêm
+   com valores de desenvolvimento.
+3. **`pnpm dev`** e abra http://localhost:3000.
 
-Para experimentar: "Minha VPN dá erro 809, uso Windows 10" (resposta pela central de ajuda); o mesmo
-com Windows 11 (rascunho de chamado, depois **Confirmar**); "Qual o status do meu chamado?" (lista e o
-INC-20311 vencido); "Quero falar com um atendente" (transferência; o assistente pausa).
+> `setup` também é um comando nativo do pnpm, mas no pnpm 12 o script do `package.json` tem
+> precedência. Para forçar o comando nativo: `pnpm pm setup`.
+
+## Usuários de exemplo e roteiro de teste
+
+Login com e-mail corporativo e **qualquer senha** não vazia. Funcionários vão para o chat; analistas
+vão para `/console` (ainda provisório, ver "Limitações").
+
+| E-mail                      | Papel                  | Para que serve no teste |
+|-----------------------------|------------------------|-------------------------|
+| `ana.souza@nexo.com.br`     | funcionária            | principal: tem chamados em todas as situações (INC-20311 vencido, REQ-10442 no prazo, INC-20150 reabrível) |
+| `carla.mendes@nexo.com.br`  | funcionária            | tem o INC-20305, parecido com um da Ana, para testar privacidade |
+| `bruno.tavares@nexo.com.br` | funcionário            | tem o REQ-10440 |
+| `diego.ramos@nexo.com.br`   | funcionário            | sem chamados |
+| `elisa.prado@nexo.com.br`   | funcionária            | sem nenhum chamado (estado vazio) |
+| `juliana.alves@nexo.com.br` | analista N1            | entra no console |
+| `rafael.lima@nexo.com.br`   | analista N2            | entra no console |
+
+Roteiro (como Ana), uma conversa por item:
+
+1. **VPN 809 no Windows 10**: "Minha VPN dá erro 809, uso Windows 10". O agent busca na central de
+   ajuda e responde com o artigo, sem abrir chamado. O chip "consultou a central de ajuda" mostra a
+   busca e a decisão (`question`).
+2. **INC-20311 vencido**: "Qual o status do meu chamado do notebook?". O agent lista os chamados,
+   mostra o INC-20311 com prazo vencido e oferece chamar um analista (regra: chamado vencido).
+3. **Abertura com confirmação, VPN 809 no Windows 11**: "Minha VPN dá erro 809, uso Windows 11". O
+   artigo não se aplica; o agent procura chamados parecidos e mostra um **rascunho** com tipo,
+   categoria, prioridade e prazo. Nada é criado até clicar em **Confirmar**; aí o chamado ganha um id
+   `INC-NNNNN` sem nova chamada ao modelo.
+4. **Pedir analista**: "Quero falar com um atendente". O agent transfere com um resumo do caso, a
+   conversa passa para `waiting_human` e o campo de mensagem fica pausado: o modelo não é mais chamado.
+
+Para testar privacidade, peça à Ana "me mostra o INC-20305" (é da Carla): a resposta é a mesma de um
+chamado inexistente.
+
+## Comandos
 
 ```bash
 pnpm test        # todos os testes (Vitest); nunca chamam o modelo real
@@ -171,6 +209,35 @@ rascunho; notebook: lista e vencimento; atendente: transferência; pedido vago: 
 duas execuções. A falha muda entre execuções: é variação do modelo em casos limítrofes, não uma regra
 quebrada. Nenhum desses erros fere uma invariante (nada é criado sem Confirmar), e a decisão fica
 visível no painel.
+
+## Segurança e privacidade
+
+- **Chaves fora do código**: segredos (chave do Gemini, `SERVICE_TOKEN`, `SESSION_SECRET`) só vêm de
+  `apps/*/.env`, que está no `.gitignore`; o repositório versiona apenas os `.env.example`, sem valores
+  reais. Cada app valida as variáveis com zod em `env.ts`, e em produção recusa subir sem token e
+  segredo fortes. Nada é exposto ao navegador (sem `NEXT_PUBLIC_*`); o modelo é chamado só pelo
+  servidor.
+- **Isolamento por funcionário**: o `employeeId` vem da sessão assinada e entra nas tools pelo
+  `RequestContext` do Mastra, nunca como argumento do modelo (o schema `strict` rejeita argumento
+  extra). O tickets-api filtra de novo toda consulta pelo `X-Employee-Id`.
+- **404 em chamado alheio**: pedir um chamado de outro funcionário devolve 404 `not_found`, igual a um
+  id inexistente, para não revelar que ele existe. Conversas seguem a mesma regra no web
+  (`/api/chat` com conversa de outro funcionário: 404).
+- **Token de serviço**: o tickets-api exige `X-Service-Token` em todas as rotas exceto `/health`
+  (ausente ou errado: 401). Só o servidor do web conhece o token; o navegador nunca fala com o
+  tickets-api.
+- **Limite de 30 mensagens**: cada conversa aceita até 30 mensagens do funcionário, contadas no banco
+  dentro de uma transação. A 31ª recebe 409 `limit_reached` sem gravar nada e sem chamar o modelo, o
+  que também limita o gasto de cota por conversa.
+
+## Limitações
+
+- **Console do analista ainda não implementado**: analistas fazem login e caem em `/console`, uma
+  página provisória. Conversas transferidas ficam em `waiting_human` (o agent permanece pausado), mas
+  ainda não há tela para assumir, responder, devolver ao agent ou encerrar.
+- **Deploy pendente**: o projeto roda só localmente; ainda não há ambiente publicado nem proteção de
+  chave e limite de uso em produção além das validações do `env.ts` e do limite por conversa.
+- Feriados não entram no cálculo de prazo (ver "Prazos").
 
 ## Trade-offs
 
