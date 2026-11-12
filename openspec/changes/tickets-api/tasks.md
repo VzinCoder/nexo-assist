@@ -6,7 +6,7 @@
 
 ## 2. @nexo/shared: schemas e tipos
 
-- [ ] 2.1 Criar `src/schemas/` com zod e tipos de `Employee` (role), `Article`, `TicketType`, `TicketCategory`, `TicketPriority`, `TicketStatus`, `TicketAffected`, `Comment` (kind), `TicketSummary`, `Ticket`, bodies de criação/comentário/reabertura/transferência/similares, `ErrorBody` e mapas de rótulo pt-BR; reexportar no `index.ts`; verificar com testes de parse (válido, campo faltando, título só com espaços, id fora do padrão `INC|REQ-NNNNN`)
+- [x] 2.1 Criar `src/schemas/` com zod e tipos de `Employee` (role), `Article`, `TicketType`, `TicketCategory`, `TicketPriority`, `TicketStatus`, `TicketAffected`, `Comment` (kind), `TicketSummary`, `Ticket`, bodies de criação/comentário/reabertura/transferência/similares, `ErrorBody` e mapas de rótulo pt-BR; reexportar no `index.ts`; verificar com testes de parse (válido, campo faltando, título só com espaços, id fora do padrão `INC|REQ-NNNNN`)
 
 ## 3. @nexo/shared: regras de prazo
 
