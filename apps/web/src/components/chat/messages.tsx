@@ -7,6 +7,17 @@ import type { MessageDto } from "@/chat/dto";
 import { DraftCard, Notice, QuickOptions, TicketCard, TicketPicker, type DraftAction } from "./cards";
 import { TraceChips, type ChipStep } from "./trace-panel";
 
+/**
+ * Quando há opções rápidas, a pergunta já aparece acima dos botões; se o texto do modelo termina
+ * repetindo uma pergunta, essa última linha é omitida.
+ */
+export function withoutTrailingQuestion(text: string): string {
+  const lines = text.trimEnd().split("\n");
+  const last = lines.at(-1)?.trim() ?? "";
+  if (lines.length > 1 && last.endsWith("?")) return lines.slice(0, -1).join("\n").trimEnd();
+  return text;
+}
+
 export const ASK_ANALYST_TEXT = "Quero falar com um analista.";
 
 /** Texto do modelo: só **negrito** é interpretado; o resto é texto puro (sem HTML). */
@@ -65,14 +76,15 @@ export function AssistantMessage({
   const handedOff = parts.some((part) => part.type === "handoff");
   const offerAnalyst = !streaming && decision?.confidence === "low" && !handedOff;
   const others = parts.filter((part) => part.type !== "options");
+  const text = options ? withoutTrailingQuestion(content) : content;
 
   return (
     <div className="flex w-full flex-col gap-1.5">
       <TraceChips steps={steps} decision={streaming ? null : decision} />
-      {content || options || streaming ? (
+      {text || options || streaming ? (
         <AgentBubble>
-          {content ? <RichText text={content} /> : null}
-          {streaming && !content ? <TypingDots /> : null}
+          {text ? <RichText text={text} /> : null}
+          {streaming && !text ? <TypingDots /> : null}
           {options && options.type === "options" ? (
             <QuickOptions
               question={options.question}

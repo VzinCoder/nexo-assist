@@ -70,7 +70,9 @@ describe("collectTurn", () => {
     const similar = { toolName: "find_similar_tickets", args: {}, result: ok("find_similar_tickets", "Verificou chamados parecidos", [{ ...card, reopenable: false }]) };
     const draft = { toolName: "draft_ticket", args: {}, result: ok("draft_ticket", "Montou o rascunho do chamado", { draftId: "d1" }) };
     expect(collectTurn({ text: "x", toolResults: [similar, draft] }).parts).toEqual([{ type: "draft", draftId: "d1" }]);
-    expect(collectTurn({ text: "x", toolResults: [similar] }).parts.map((part) => part.type)).toEqual(["ticket"]);
+    expect(collectTurn({ text: "Achei o INC-20311 aberto.", toolResults: [similar] }).parts.map((part) => part.type)).toEqual(["ticket"]);
+    // Resposta que não cita o chamado (ex.: resolveu pela central): o card some.
+    expect(collectTurn({ text: "Reinstale o cliente de VPN.", toolResults: [similar] }).parts).toEqual([]);
   });
 
   it("erro de validação do Mastra vira passo de trace com erro", () => {

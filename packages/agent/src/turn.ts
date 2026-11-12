@@ -175,10 +175,18 @@ export function collectTurn(input: { text: string; toolResults: RawToolResult[] 
       if (parts[index]?.type === "tickets") parts.splice(index, 1);
     }
   }
-  if (createdDraft && similarParts.size > 0) {
+  // Cards da checagem de duplicidade só aparecem se o agent os usou: a resposta cita o chamado e
+  // não foi preparado um chamado novo (nesse caso ele concluiu que não era o mesmo problema).
+  if (similarParts.size > 0) {
     for (let index = parts.length - 1; index >= 0; index--) {
       const part = parts[index];
-      if (part && similarParts.has(part)) parts.splice(index, 1);
+      if (!part || !similarParts.has(part)) continue;
+      const cited = (part.type === "ticket" ? [part.ticket] : part.type === "tickets" ? part.tickets : []).filter((ticket) =>
+        input.text.toUpperCase().includes(ticket.id),
+      );
+      const replacement = createdDraft ? null : ticketsPart(cited);
+      if (replacement) parts.splice(index, 1, replacement);
+      else parts.splice(index, 1);
     }
   }
   if (ticketsUnavailable) parts.push({ type: "notice", code: "tickets_unavailable" });

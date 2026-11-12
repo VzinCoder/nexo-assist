@@ -1,7 +1,7 @@
 import { MISSING_DECISION } from "@nexo/agent";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { AssistantMessage } from "./messages";
+import { AssistantMessage, withoutTrailingQuestion } from "./messages";
 import { streamingSteps } from "./streaming";
 import { TraceChips } from "./trace-panel";
 
@@ -79,6 +79,14 @@ describe("AssistantMessage", () => {
       />,
     );
     expect(html).not.toContain("Falar com um analista");
+  });
+});
+
+describe("withoutTrailingQuestion", () => {
+  it("omite a pergunta repetida no fim do texto quando há opções", () => {
+    expect(withoutTrailingQuestion("Vou abrir um chamado.\n\nQuem o problema afeta?")).toBe("Vou abrir um chamado.");
+    expect(withoutTrailingQuestion("Quem o problema afeta?")).toBe("Quem o problema afeta?");
+    expect(withoutTrailingQuestion("Linha um.\nLinha dois.")).toBe("Linha um.\nLinha dois.");
   });
 });
 
