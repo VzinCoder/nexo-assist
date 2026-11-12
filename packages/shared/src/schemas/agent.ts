@@ -51,3 +51,17 @@ export const DECISION_CONFIDENCE_LABELS: Record<DecisionConfidence, string> = {
   medium: "Média",
   low: "Baixa",
 };
+
+/** Rótulo do chip de cada tool do agent (usado antes de o resultado chegar e quando a tool não roda). */
+export const TOOL_LABELS = {
+  search_help_center: "Buscou na central de ajuda",
+  list_my_tickets: "Consultou seus chamados",
+  get_ticket: "Abriu um chamado",
+  find_similar_tickets: "Verificou chamados parecidos",
+  draft_ticket: "Montou o rascunho do chamado",
+  draft_ticket_update: "Montou o rascunho de atualização",
+  offer_options: "Ofereceu opções",
+  handoff_to_human: "Transferiu para um analista",
+  report_decision: "Registrou a decisão",
+} as const;
+export type AgentToolName = keyof typeof TOOL_LABELS;

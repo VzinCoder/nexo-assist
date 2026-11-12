@@ -41,6 +41,8 @@ export const ticketCardSchema = z.object({
   updatedAt: z.string(),
   dueAt: z.string(),
   isOverdue: z.boolean(),
+  /** Só quando o agent abriu o detalhe do chamado. */
+  description: z.string().optional(),
 });
 export type TicketCard = z.infer<typeof ticketCardSchema>;
 

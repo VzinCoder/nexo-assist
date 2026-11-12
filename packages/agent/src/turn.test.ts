@@ -47,11 +47,30 @@ describe("collectTurn", () => {
         },
       ],
     });
-    expect(turn.parts.map((part) => part.type)).toEqual(["tickets", "ticket", "draft", "options", "handoff"]);
+    expect(turn.parts.map((part) => part.type)).toEqual(["ticket", "draft", "options", "handoff"]);
     expect(turn.handedOff).toBe(true);
     expect(turn.decision.intent).toBe("handoff");
     expect(turn.trace).toHaveLength(6);
     expect(turn.text).toMatch(/analista/);
+  });
+
+  it("lista sem filtro mostra só chamados em andamento; com filtro, todos os devolvidos", () => {
+    const resolved = { ...card, id: "INC-20150", status: "resolved", isOverdue: false };
+    const result = ok("list_my_tickets", "Consultou seus chamados", [card, { ...card, id: "REQ-10442", type: "REQ" }, resolved]);
+    const all = collectTurn({ text: "x", toolResults: [{ toolName: "list_my_tickets", args: {}, result }] });
+    expect(all.parts[0]).toMatchObject({ type: "tickets", tickets: [{ id: "INC-20311" }, { id: "REQ-10442" }] });
+    const filtered = collectTurn({
+      text: "x",
+      toolResults: [{ toolName: "list_my_tickets", args: { status: "resolved" }, result: ok("list_my_tickets", "Consultou seus chamados", [resolved]) }],
+    });
+    expect(filtered.parts[0]).toMatchObject({ type: "ticket", ticket: { id: "INC-20150" } });
+  });
+
+  it("parecidos somem quando o agent prepara um chamado novo; ficam se não houver rascunho novo", () => {
+    const similar = { toolName: "find_similar_tickets", args: {}, result: ok("find_similar_tickets", "Verificou chamados parecidos", [{ ...card, reopenable: false }]) };
+    const draft = { toolName: "draft_ticket", args: {}, result: ok("draft_ticket", "Montou o rascunho do chamado", { draftId: "d1" }) };
+    expect(collectTurn({ text: "x", toolResults: [similar, draft] }).parts).toEqual([{ type: "draft", draftId: "d1" }]);
+    expect(collectTurn({ text: "x", toolResults: [similar] }).parts.map((part) => part.type)).toEqual(["ticket"]);
   });
 
   it("erro de validação do Mastra vira passo de trace com erro", () => {

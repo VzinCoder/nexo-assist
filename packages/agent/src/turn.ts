@@ -1,5 +1,7 @@
 import {
+  TOOL_LABELS,
   decisionSchema,
+  isFinished,
   ticketCardSchema,
   type ChatPart,
   type Decision,
@@ -21,18 +23,7 @@ export type CollectedTurn = {
   handedOff: boolean;
 };
 
-/** Rótulo do chip quando a tool nem chegou a rodar (argumentos recusados pela validação). */
-export const TOOL_LABELS: Record<ToolName, string> = {
-  search_help_center: "Buscou na central de ajuda",
-  list_my_tickets: "Consultou seus chamados",
-  get_ticket: "Abriu um chamado",
-  find_similar_tickets: "Verificou chamados parecidos",
-  draft_ticket: "Montou o rascunho do chamado",
-  draft_ticket_update: "Montou o rascunho de atualização",
-  offer_options: "Ofereceu opções",
-  handoff_to_human: "Transferiu para um analista",
-  report_decision: "Registrou a decisão",
-};
+export { TOOL_LABELS };
 
 export const MISSING_DECISION: Decision = {
   intent: "other",
@@ -74,6 +65,10 @@ function ticketsPart(cards: TicketCard[]): ChatPart | null {
   return { type: "tickets", tickets: cards };
 }
 
+function hasStatusFilter(args: unknown): boolean {
+  return typeof args === "object" && args !== null && "status" in args && typeof args.status === "string";
+}
+
 function isToolName(name: string): name is ToolName {
   return name in TOOL_LABELS;
 }
@@ -95,6 +90,9 @@ export function collectTurn(input: { text: string; toolResults: RawToolResult[] 
   let decision: Decision | null = null;
   let handedOff = false;
   let ticketsUnavailable = false;
+  /** Cards vindos da checagem de duplicidade: somem se o agent concluiu que é problema novo. */
+  const similarParts = new Set<ChatPart>();
+  let createdDraft = false;
 
   for (const raw of input.toolResults) {
     const parsed = toolResultSchema.safeParse(raw.result);
@@ -121,19 +119,35 @@ export function collectTurn(input: { text: string; toolResults: RawToolResult[] 
       case "list_my_tickets":
       case "find_similar_tickets": {
         const cards = cardsSchema.safeParse(result.data);
-        const part = cards.success ? ticketsPart(cards.data.map(toCard)) : null;
-        if (part) parts.push(part);
+        if (!cards.success) break;
+        let list = cards.data.map(toCard);
+        // Sem filtro de status, a lista para escolher mostra só os chamados em andamento (se houver).
+        if (raw.toolName === "list_my_tickets" && !hasStatusFilter(raw.args)) {
+          const active = list.filter((card) => !isFinished(card.status));
+          if (active.length > 0) list = active;
+        }
+        const part = ticketsPart(list);
+        if (part) {
+          parts.push(part);
+          if (raw.toolName === "find_similar_tickets") similarParts.add(part);
+        }
         break;
       }
       case "get_ticket": {
         const card = ticketCardSchema.passthrough().safeParse(result.data);
-        if (card.success) parts.push({ type: "ticket", ticket: toCard(card.data) });
+        if (card.success) {
+          const description = typeof card.data.description === "string" ? card.data.description : undefined;
+          parts.push({ type: "ticket", ticket: { ...toCard(card.data), ...(description ? { description } : {}) } });
+        }
         break;
       }
       case "draft_ticket":
       case "draft_ticket_update": {
         const draft = draftDataSchema.safeParse(result.data);
-        if (draft.success) parts.push({ type: "draft", draftId: draft.data.draftId });
+        if (draft.success) {
+          parts.push({ type: "draft", draftId: draft.data.draftId });
+          if (raw.toolName === "draft_ticket") createdDraft = true;
+        }
         break;
       }
       case "offer_options": {
@@ -155,6 +169,18 @@ export function collectTurn(input: { text: string; toolResults: RawToolResult[] 
     }
   }
 
+  // Depois de transferir, listas para escolher não servem mais (o campo fica desabilitado).
+  if (handedOff) {
+    for (let index = parts.length - 1; index >= 0; index--) {
+      if (parts[index]?.type === "tickets") parts.splice(index, 1);
+    }
+  }
+  if (createdDraft && similarParts.size > 0) {
+    for (let index = parts.length - 1; index >= 0; index--) {
+      const part = parts[index];
+      if (part && similarParts.has(part)) parts.splice(index, 1);
+    }
+  }
   if (ticketsUnavailable) parts.push({ type: "notice", code: "tickets_unavailable" });
 
   let text = input.text.trim();
