@@ -11,7 +11,13 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@ai-sdk/react": "4.0.174",
+    "@mastra/ai-sdk": "1.11.3",
+    "@mastra/core": "1.82.0",
+    "@nexo/agent": "workspace:*",
     "@nexo/shared": "workspace:*",
+    "ai": "7.0.170",
+    "drizzle-orm": "1.0.0-rc.5",
     "next": "^16.4.6",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
@@ -21,6 +27,7 @@
     "@tailwindcss/postcss": "^4.3.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "drizzle-kit": "1.0.0-rc.5",
     "tailwindcss": "^4.3.5"
   }
 }
