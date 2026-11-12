@@ -62,7 +62,7 @@ Cada seção termina com um commit (`git add` de arquivos específicos), feito s
 
 ## 10. README
 
-- [ ] 10.1 Atualizar `README.md`: como rodar (env, seed, dev, login), arquitetura (web ↔ agent ↔ tickets-api, sessão, banco do web), como o agent decide (tools, instruções, trace/decisão, gating no código), escolha do modelo (free tier custo zero, latência baixa, regras críticas no código, troca por env, limites 6 passos/12 mensagens/`maxOutputTokens`), qualidade (testes + resultado do `pnpm eval`), trade-offs e próximos passos; verificar seguindo o README do zero num clone limpo até uma conversa funcionando
+- [x] 10.1 Atualizar `README.md`: como rodar (env, seed, dev, login), arquitetura (web ↔ agent ↔ tickets-api, sessão, banco do web), como o agent decide (tools, instruções, trace/decisão, gating no código), escolha do modelo (free tier custo zero, latência baixa, regras críticas no código, troca por env, limites 6 passos/12 mensagens/`maxOutputTokens`), qualidade (testes + resultado do `pnpm eval`), trade-offs e próximos passos; verificar seguindo o README do zero num clone limpo até uma conversa funcionando
 
 ## Workflow follow-up
 

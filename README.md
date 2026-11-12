@@ -1,56 +1,197 @@
 # Nexo Assist
 
-Agent de service desk de TI num chat, com console do analista. Monorepo pnpm.
+Agent de service desk de TI num chat. O funcionário descreve o problema; o agent consulta os chamados
+dele, busca na central de ajuda, prepara chamados (que o funcionário confirma) e transfere para um
+analista quando precisa. Cada resposta mostra **o que o agent entendeu, o que fez, com que confiança e
+por quê**. Monorepo pnpm com TypeScript strict.
 
-> Em construção: esta é a base do workspace. Arquitetura, decisões do agent, testes/eval e trade-offs
-> serão documentados aqui conforme as próximas etapas forem entregues.
+> Fora desta entrega: o console do analista (`/console` é só uma página provisória) e o deploy.
 
 ## Pré-requisitos
 
 - Node.js 24 ou superior
 - pnpm 12 (`corepack enable` usa a versão fixada em `packageManager`)
+- Uma chave do Google AI Studio (nível gratuito) para o chat responder. Sem ela, login e histórico
+  funcionam e o chat avisa que o assistente não está configurado.
 
 ## Como rodar
 
 ```bash
-pnpm install     # instala as dependências de todos os projetos
-pnpm dev         # sobe web (http://localhost:3000) e tickets-api (http://localhost:3001)
-pnpm test        # roda os testes (Vitest) de todos os projetos
-pnpm typecheck   # verifica os tipos (TypeScript strict) de todos os projetos
-pnpm build       # build de produção do web e do tickets-api
+pnpm install
+cp apps/web/.env.example apps/web/.env      # coloque GOOGLE_GENERATIVE_AI_API_KEY
+pnpm --filter @nexo/tickets-api seed        # (opcional) recria os dados de exemplo
+pnpm dev                                    # web em http://localhost:3000, tickets-api em :3001
 ```
 
-Rodar só um projeto:
+Abra http://localhost:3000 e entre com `ana.souza@nexo.com.br` e **qualquer senha** (funcionária
+principal do seed). Analistas (`juliana.alves@nexo.com.br`) vão para `/console`.
+
+Para experimentar: "Minha VPN dá erro 809, uso Windows 10" (resposta pela central de ajuda); o mesmo
+com Windows 11 (rascunho de chamado, depois **Confirmar**); "Qual o status do meu chamado?" (lista e o
+INC-20311 vencido); "Quero falar com um atendente" (transferência; o assistente pausa).
 
 ```bash
-pnpm --filter @nexo/web dev
-pnpm --filter @nexo/tickets-api dev
-pnpm --filter @nexo/tickets-api start   # executa o build (dist/server.js)
+pnpm test        # todos os testes (Vitest); nunca chamam o modelo real
+pnpm typecheck   # TypeScript strict em todos os projetos + scripts/eval
+pnpm build       # build de produção do web e do tickets-api
+pnpm eval        # cenários com o modelo REAL (precisa da chave; ~4 min, fora do pnpm test)
 ```
 
-Não é preciso `.env` para rodar localmente: todas as variáveis têm padrão. Para sobrescrever, copie o
-`.env.example` do app para `.env` no mesmo diretório:
+### Variáveis de ambiente
 
-| App          | Arquivo                       | Variáveis                       |
-|--------------|-------------------------------|---------------------------------|
-| web          | `apps/web/.env.example`       | `TICKETS_API_URL`               |
+Todas têm padrão de desenvolvimento, exceto a chave do modelo. Valores inválidos impedem a
+inicialização com uma mensagem que nomeia a variável. Cada app lê e valida o próprio `env.ts`.
+
+| App          | Arquivo                         | Variáveis |
+|--------------|---------------------------------|-----------|
+| web          | `apps/web/.env.example`         | `TICKETS_API_URL`, `SERVICE_TOKEN`, `SESSION_SECRET`, `WEB_DATABASE_FILE`, `LLM_MODEL`, `GOOGLE_GENERATIVE_AI_API_KEY` |
 | tickets-api  | `apps/tickets-api/.env.example` | `NODE_ENV`, `PORT`, `HOST`, `LOG_LEVEL`, `SERVICE_TOKEN`, `DATABASE_FILE`, `FAILURE_RATE`, `LATENCY_MS` |
 
-Valores inválidos impedem a inicialização com uma mensagem que nomeia a variável.
+Em produção (`NODE_ENV=production`) o web exige `SESSION_SECRET` (32+ caracteres) e `SERVICE_TOKEN`
+(16+). `LLM_MODEL` precisa estar no formato `provedor/modelo`.
 
-## Estrutura
+## Arquitetura
+
+```
+navegador --(cookie de sessão)--> apps/web (Next 16)
+                                   |- proxy.ts: redireciona por sessão/papel; APIs sem sessão -> 401
+                                   |- /api/chat -> gate (código) -> @nexo/agent (Mastra) -> Gemini
+                                   |                                    | tools
+                                   |- /api/drafts/:id/confirm ------> cliente HTTP (@nexo/shared)
+                                   '- web.db (SQLite): conversas, mensagens, trace, rascunhos
+                                                                        | X-Service-Token + X-Employee-Id
+                                                                        v
+                                                            apps/tickets-api (Fastify, tickets.db)
+```
 
 ```
 apps/
-  web/            @nexo/web          Next.js (App Router) + Tailwind
-  tickets-api/    @nexo/tickets-api  Fastify; serviço de chamados legado simulado
+  web/            @nexo/web          telas, login, /api/chat, /api/conversations, /api/drafts
+  tickets-api/    @nexo/tickets-api  serviço de chamados legado simulado (instável de propósito)
 packages/
-  agent/          @nexo/agent        agent (Mastra), tools e regras de negócio
-  shared/         @nexo/shared       schemas, tipos e cliente HTTP do tickets-api
+  agent/          @nexo/agent        agent Mastra: instruções, 9 tools, trace, coleta do turno
+  shared/         @nexo/shared       schemas zod, regras puras (SLA, vencimento, reabertura), cliente HTTP
+scripts/eval/                        eval com o modelo real
 ```
 
-Os pacotes de `packages/` são consumidos direto do código TypeScript (sem build próprio). O Next os
-transpila e o build do `tickets-api` (tsup) os empacota em `dist/server.js`.
+- **Sessão**: cookie `nexo_session` httpOnly, `SameSite=Lax`, assinado com HMAC-SHA256 (Web Crypto),
+  expira em 8 h. O login consulta o funcionário pelo e-mail no tickets-api; qualquer senha não vazia
+  serve. O `proxy.ts` faz a checagem otimista e cada rota de API revalida a sessão.
+- **Banco do web** (`web.db`, Drizzle + `node:sqlite`): conversas (status, contador de mensagens,
+  motivo da transferência), mensagens (texto, partes estruturadas, `trace`, `decision`) e rascunhos.
+  O web nunca acessa o banco do tickets-api; só usa o cliente HTTP.
+- `packages/agent` não importa nada do Next nem de `apps/*`: recebe o cliente do tickets-api e duas
+  portas (`DraftStore`, `ConversationStore`) por injeção. O web as implementa sobre o banco; os testes
+  e o eval usam versões em memória.
+
+## Como o agent decide
+
+**Tools** (Mastra `createTool`, entrada validada com zod `strict`):
+
+| Tool | O que faz |
+|------|-----------|
+| `search_help_center(query)` | busca artigos da central de ajuda |
+| `list_my_tickets(status?)` | chamados do funcionário, com `isOverdue` |
+| `get_ticket(ticketId)` | detalhe de um chamado do funcionário |
+| `find_similar_tickets(text)` | checagem de duplicidade/reabertura antes de rascunhar |
+| `draft_ticket(campos)` | rascunho de chamado novo, com prazo calculado (não cria nada) |
+| `draft_ticket_update(ticketId, kind, text)` | rascunho de complemento ou reabertura (recusa fora da regra) |
+| `offer_options(question, options)` | pergunta fechada com 2 a 6 botões |
+| `handoff_to_human(reason, summary, ticketId?)` | transfere a conversa e registra no chamado |
+| `report_decision(intent, action, confidence, reason)` | decisão estruturada da resposta |
+
+**Instruções** (`packages/agent/src/instructions.ts`) são geradas a partir das constantes de
+`@nexo/shared` (categorias, prioridade e prazo, janela de 7 dias), para não divergirem das regras, e
+recebem a data e hora atuais a cada resposta. Elas fixam o fluxo (central de ajuda, chamados parecidos,
+rascunho), mandam perguntar quando faltar dado, nunca dizer que criou um chamado, atender só TI,
+transferir quando pedido, crítico, vencido ou sem segurança, e chamar `report_decision` antes do texto
+final.
+
+**Transparência**: cada tool devolve resultado + `TraceStep` (`tool`, rótulo em português, entrada,
+saída resumida, duração, erro). No fim do stream a rota não confia no texto do modelo: percorre os
+resultados das tools e extrai o trace, a decisão e as partes da UI (cards, lista, rascunho, opções,
+transferência). Se o modelo não registrou decisão, grava uma sintética `other` com confiança `low`. A
+UI mostra uma linha de chips acima de cada resposta ("consultou seus chamados") que abre o painel com
+a decisão (Entendeu / Fez / Confiança / Por quê) e cada passo. Durante o streaming os chips aparecem
+assim que cada tool roda. Confiança baixa mostra o botão "Falar com um analista".
+
+**Regras garantidas por código, não pelo prompt:**
+
+| Regra | Onde |
+|-------|------|
+| Privacidade: `employeeId`/`conversationId` só do `RequestContext` da sessão; argumento extra do modelo é rejeitado pelo schema `strict`; o tickets-api também filtra | `packages/agent/src/context.ts`, `tools.ts` |
+| Confirmação: tools só gravam rascunhos; criar, comentar ou reabrir acontece em `POST /api/drafts/:id/confirm`, sem LLM, com claim atômico (2ª confirmação: 409) | `apps/web/src/chat/drafts-handler.ts` |
+| Transferência: conversa fora do status `agent` faz `/api/chat` responder 409 sem chamar o modelo | `apps/web/src/chat/gate.ts` |
+| Limite: 30 mensagens do funcionário por conversa, contadas no banco numa transação | `apps/web/src/chat/repository.ts` |
+| SLA, vencimento, reabertura: funções puras compartilhadas | `packages/shared/src/rules/` |
+
+## Escolha do modelo
+
+Padrão: **`google/gemini-3.5-flash-lite`** pelo model router do Mastra (id conferido na API do
+Gemini; reserva `google/gemini-3.1-flash-lite`).
+
+- **Custo zero** no nível gratuito do Google AI Studio (15 req/min, 500/dia) e **latência baixa**:
+  nos testes no navegador, as respostas com 1 a 3 chamadas de tool chegaram em poucos segundos.
+- O trabalho do modelo é estreito (escolher tools e redigir 1 a 3 frases) e as regras críticas estão no
+  código, então um modelo pequeno basta. Os erros dele caem em trilhos: decisão sintética `other/low`,
+  rascunho que precisa de confirmação, gate antes do modelo.
+- **Troca por env**: `LLM_MODEL=provedor/modelo` e a chave correspondente, sem mudar código.
+- **Limites por resposta**: até 6 passos de tool, `maxOutputTokens` 800, só as últimas 12 mensagens do
+  banco no contexto (o histórico enviado pelo navegador é ignorado) e **nenhum retry automático** no
+  provedor (o processador padrão de retry do Mastra foi substituído; repetir um 429 só gastaria cota).
+  Um 429 vira "Muitas requisições no momento, tente em instantes" e um passo `llm` com erro no trace.
+
+## Qualidade: testes e eval
+
+`pnpm test` roda 272 testes em 36 arquivos, todos com modelo falso (`createScriptedModel`, um mock
+roteirizado do Mastra) e cliente falso ou tickets-api em memória. Os mais importantes:
+
+- regras puras: prazo em horas úteis, vencimento, janela de reabertura de 7 dias;
+- privacidade: funcionário A não vê chamado de B, no tickets-api e de ponta a ponta pelas tools;
+- `/api/chat`: não chama o agent em `waiting_human`/`with_human`; a 30ª mensagem passa e a 31ª é
+  bloqueada sem gravar; conversa de outro funcionário dá 404; sem sessão, 401; o modelo recebe só 12
+  mensagens; um 429 grava o passo `llm` com erro;
+- rascunhos: cria uma única vez; duas confirmações paralelas fazem uma só chamada ao serviço;
+  indisponível dá 503 e o rascunho volta a `pending`; o 409 do serviço repassa o motivo;
+- agent: modelo em laço para em 6 passos; um 429 não é repetido;
+- cliente HTTP: retry com backoff e erros tipados;
+- UI: painel de trace com passo de erro e decisão sintética.
+
+`pnpm eval` (`scripts/eval/run.ts`) roda 8 cenários com o modelo real contra um tickets-api em memória
+(nenhum chamado real é criado), com pausa de 30 s entre cenários, e verifica as tools chamadas e o
+intent. Resultado com `google/gemini-3.5-flash-lite` em 11/11/2026:
+
+| Execução | Resultado | Falha |
+|----------|-----------|-------|
+| 1ª | 7/8 | "problema já aberto": comportamento certo (achou o INC-20298, sem novo rascunho), mas intent `ticket_create` |
+| 2ª, após ajustar a definição dos intents nas instruções | 7/8 | "SAP bloqueou de novo": achou o INC-20150 reabrível, mas perguntou em vez de preparar a reabertura |
+
+Os outros seis cenários (RH: `out_of_scope`; VPN 809 no Windows 10: central de ajuda; no Windows 11:
+rascunho; notebook: lista e vencimento; atendente: transferência; pedido vago: pergunta) passaram nas
+duas execuções. A falha muda entre execuções: é variação do modelo em casos limítrofes, não uma regra
+quebrada. Nenhum desses erros fere uma invariante (nada é criado sem Confirmar), e a decisão fica
+visível no painel.
+
+## Trade-offs
+
+- **Modelo pequeno com trilhos no código** em vez de um modelo maior: mais barato e rápido; o preço é a
+  variação vista no eval (intent e "pergunta ou age" em casos limítrofes).
+- **Histórico no banco do web, sem memória do Mastra**: um só lugar de verdade e contexto controlado (12
+  mensagens); o modelo não lembra resultados de tools de turnos anteriores, só o texto.
+- **Trace derivado dos resultados das tools**, não do texto: confiável e auditável; o texto do modelo
+  não é conferido contra o trace.
+- **Sessão sem biblioteca** (HMAC próprio): pouco código para um login simulado; não há revogação de
+  sessão no servidor.
+- **SQLite** nos dois serviços: zero infraestrutura; não escala horizontalmente.
+- **Feriados** não entram no cálculo de prazo (ver "Prazos").
+
+## O que faria com mais tempo
+
+- Console do analista (assumir, responder, devolver ao agent, encerrar), já previsto pelos status.
+- Eval com mais cenários e várias execuções por cenário, medindo taxa de acerto em vez de um único
+  passou/falhou, rodando em CI com orçamento de cota.
+- Edição do rascunho no próprio card e atalho de teclado para confirmar.
+- Feriados no SLA, rate limit por usuário no `/api/chat` e deploy com chaves em secret manager.
 
 ## tickets-api (serviço de chamados legado)
 
