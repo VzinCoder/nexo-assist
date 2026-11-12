@@ -75,7 +75,8 @@ export function ChatApp({ initial, firstName }: { initial: ConversationDto; firs
   const endRef = useRef<HTMLDivElement>(null);
 
   const refresh = useCallback(async (): Promise<ConversationDto | null> => {
-    const response = await fetch("/api/conversations/current", { cache: "no-store" });
+    // Pelo id: se o analista encerrar, a conversa continua na tela (a rota "current" criaria outra).
+    const response = await fetch(`/api/conversations/${encodeURIComponent(conversationIdRef.current)}`, { cache: "no-store" });
     if (response.status === 401) goToLogin();
     if (!response.ok) throw await readError(response);
     const dto = (await response.json()) as ConversationDto;
@@ -121,8 +122,13 @@ export function ChatApp({ initial, firstName }: { initial: ConversationDto; firs
 
   const busy = status === "submitted" || status === "streaming";
   const transferred = conversation.status === "waiting_human" || conversation.status === "with_human";
+  const withAnalyst = conversation.status === "with_human";
+  const closed = conversation.status === "closed";
   const limitReached = conversation.userMessageCount >= conversation.maxUserMessages;
   const canSend = conversation.status === "agent" && !busy && !limitReached;
+  const [replying, setReplying] = useState(false);
+  const canReply = withAnalyst && !replying && !limitReached;
+  const composerEnabled = (conversation.status === "agent" || withAnalyst) && !limitReached;
 
   // Enquanto estiver com analista, acompanha o estado sem recarregar a página.
   useEffect(() => {
@@ -149,9 +155,36 @@ export function ChatApp({ initial, firstName }: { initial: ConversationDto; firs
     [canSend, sendMessage],
   );
 
+  /** Com analista, a mensagem vai direto para o banco (sem LLM) e o analista vê pelo console. */
+  const replyToAnalyst = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || !canReply) return;
+    setReplying(true);
+    setNotice(null);
+    try {
+      const response = await fetch(`/api/conversations/${encodeURIComponent(conversationIdRef.current)}/messages`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text: trimmed }),
+      });
+      if (response.status === 401) goToLogin();
+      if (!response.ok) throw await readError(response);
+      setInput("");
+    } catch (error) {
+      setNotice(noticeFor(error));
+    }
+    try {
+      await refresh();
+    } catch {
+      // o polling tenta de novo
+    }
+    setReplying(false);
+  };
+
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    send(input);
+    if (withAnalyst) void replyToAnalyst(input);
+    else send(input);
   };
 
   const startNewConversation = async () => {
@@ -255,7 +288,22 @@ export function ChatApp({ initial, firstName }: { initial: ConversationDto; firs
           </div>
         ) : null}
         {transferred ? <TransferBanner status={conversation.status} reason={conversation.handoffReason} /> : null}
-        {limitReached && !transferred ? (
+        {closed ? (
+          <div role="status" className="flex flex-wrap items-center gap-3 rounded-xl bg-desk px-4 py-3">
+            <p className="min-w-0 flex-1 text-[13.5px]/5 text-ink-2">
+              <span className="font-semibold text-ink">Esta conversa foi encerrada.</span> Se precisar de mais alguma coisa, comece uma nova conversa.
+            </p>
+            <button
+              type="button"
+              onClick={() => void startNewConversation()}
+              disabled={startingNew}
+              className="flex h-9 items-center gap-1.5 rounded-md bg-cta px-3 text-[13.5px] font-semibold text-white hover:bg-[#0057ad] disabled:opacity-50"
+            >
+              <MessageSquarePlus className="h-4 w-4" aria-hidden="true" /> Nova conversa
+            </button>
+          </div>
+        ) : null}
+        {limitReached && !transferred && !closed ? (
           <p className="rounded-xl bg-desk px-3.5 py-3 text-[13.5px]/5 text-ink-2">
             Esta conversa chegou ao limite de {conversation.maxUserMessages} mensagens. Comece uma nova conversa para continuar.
           </p>
@@ -272,12 +320,16 @@ export function ChatApp({ initial, firstName }: { initial: ConversationDto; firs
             id="composer"
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            disabled={conversation.status !== "agent" || limitReached}
+            disabled={!composerEnabled}
             maxLength={2000}
             autoComplete="off"
             placeholder={
-              transferred
+              withAnalyst
+                ? "Responder ao analista…"
+                : transferred
                 ? "O assistente está pausado enquanto um analista atende"
+                : closed
+                  ? "Conversa encerrada"
                 : limitReached
                   ? "Limite de mensagens atingido"
                   : "Escreva para o Nexo…"
@@ -286,10 +338,10 @@ export function ChatApp({ initial, firstName }: { initial: ConversationDto; firs
           />
           <button
             type="submit"
-            disabled={!canSend || input.trim() === ""}
+            disabled={!(withAnalyst ? canReply : canSend) || input.trim() === ""}
             className="flex h-9 items-center gap-1.5 rounded-md bg-cta px-3 text-[13.5px] font-semibold text-white hover:bg-[#0057ad] disabled:opacity-50"
           >
-            {busy ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ArrowUp className="h-4 w-4" aria-hidden="true" />}
+            {busy || replying ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ArrowUp className="h-4 w-4" aria-hidden="true" />}
             Enviar
           </button>
         </form>
@@ -349,7 +401,7 @@ function TransferBanner({ status, reason }: { status: ConversationDto["status"];
         <p className="text-ink-2">
           {waiting
             ? "Passamos um resumo do caso para a equipe. Um analista vai continuar por aqui; enquanto isso o assistente fica pausado."
-            : "Um analista está cuidando do seu caso nesta conversa."}
+            : "Um analista está cuidando do seu caso. Responda por aqui; o assistente volta quando o analista devolver a conversa."}
           {reason ? <span className="text-ink-3"> Motivo: {reason}</span> : null}
         </p>
       </div>

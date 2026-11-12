@@ -5,7 +5,7 @@ dele, busca na central de ajuda, prepara chamados (que o funcionário confirma) 
 analista quando precisa. Cada resposta mostra **o que o agent entendeu, o que fez, com que confiança e
 por quê**. Monorepo pnpm com TypeScript strict.
 
-> Fora desta entrega: o console do analista (`/console` é só uma página provisória) e o deploy.
+> Fora desta entrega: o deploy.
 
 ## Pré-requisitos
 
@@ -37,7 +37,7 @@ pnpm dev        # web em http://localhost:3000, tickets-api em http://localhost:
 ## Usuários de exemplo e roteiro de teste
 
 Login com e-mail corporativo e **qualquer senha** não vazia. Funcionários vão para o chat; analistas
-vão para `/console` (ainda provisório, ver "Limitações").
+vão para o console (`/console`).
 
 | E-mail                      | Papel                  | Para que serve no teste |
 |-----------------------------|------------------------|-------------------------|
@@ -46,8 +46,8 @@ vão para `/console` (ainda provisório, ver "Limitações").
 | `bruno.tavares@nexo.com.br` | funcionário            | tem o REQ-10440 |
 | `diego.ramos@nexo.com.br`   | funcionário            | sem chamados |
 | `elisa.prado@nexo.com.br`   | funcionária            | sem nenhum chamado (estado vazio) |
-| `juliana.alves@nexo.com.br` | analista N1            | entra no console |
-| `rafael.lima@nexo.com.br`   | analista N2            | entra no console |
+| `juliana.alves@nexo.com.br` | analista N1            | console: assume e responde conversas transferidas |
+| `rafael.lima@nexo.com.br`   | analista N2            | console (mesmas permissões do N1 nesta versão) |
 
 Roteiro (como Ana), uma conversa por item:
 
@@ -62,9 +62,38 @@ Roteiro (como Ana), uma conversa por item:
    `INC-NNNNN` sem nova chamada ao modelo.
 4. **Pedir analista**: "Quero falar com um atendente". O agent transfere com um resumo do caso, a
    conversa passa para `waiting_human` e o campo de mensagem fica pausado: o modelo não é mais chamado.
+5. **Atendimento pelo analista** (continua o item 4): numa janela anônima, entre como
+   `juliana.alves@nexo.com.br`. A conversa da Ana aparece em "Para atender"; clique, leia o resumo da
+   transferência e o histórico com os chips de trace, e clique em **Assumir atendimento**. Responda:
+   a mensagem aparece no chat da Ana em até 3 s, e ela pode responder. **Devolver ao agent** reativa o
+   assistente para a Ana; **Encerrar** mostra a ela "Esta conversa foi encerrada" com o botão
+   **Nova conversa**.
 
 Para testar privacidade, peça à Ana "me mostra o INC-20305" (é da Carla): a resposta é a mesma de um
 chamado inexistente.
+
+## Console do analista
+
+`/console` só para `analyst_n1`/`analyst_n2` (o proxy redireciona funcionários e as rotas
+`/api/console/*` respondem 403 para eles). Segue as telas 4 e 5 do protótipo:
+
+- **Lista** com filtro por status (padrão: aguardando + em atendimento), motivo da transferência e
+  última mensagem; atualiza por polling a cada 3 s.
+- **Conversa**: resumo da transferência, histórico com os mesmos chips de trace e decisão do chat, e
+  ao lado os **chamados do funcionário** (via cliente do tickets-api, com estado de erro se o legado
+  cair).
+- **Ações** com transições validadas no servidor, atômicas (`UPDATE ... WHERE status IN (...)`) e
+  registradas como mensagem `system` visível aos dois lados:
+
+| Ação               | De                          | Para         |
+|--------------------|-----------------------------|--------------|
+| Assumir            | `waiting_human`, `agent`    | `with_human` |
+| Devolver ao agent  | `with_human`                | `agent`      |
+| Encerrar           | qualquer status aberto      | `closed`     |
+
+  Transição inválida (ex.: duas analistas assumindo ao mesmo tempo) responde 409. O analista só envia
+  mensagem com a conversa `with_human`; o funcionário também só responde ao analista nesse status, por
+  uma rota que grava direto no banco (conta no limite de 30 mensagens e nunca chama o LLM).
 
 ## Comandos
 
@@ -104,7 +133,7 @@ navegador --(cookie de sessão)--> apps/web (Next 16)
 
 ```
 apps/
-  web/            @nexo/web          telas, login, /api/chat, /api/conversations, /api/drafts
+  web/            @nexo/web          telas, login, /api/chat, /api/conversations, /api/drafts, /api/console
   tickets-api/    @nexo/tickets-api  serviço de chamados legado simulado (instável de propósito)
 packages/
   agent/          @nexo/agent        agent Mastra: instruções, 9 tools, trace, coleta do turno
@@ -232,9 +261,10 @@ visível no painel.
 
 ## Limitações
 
-- **Console do analista ainda não implementado**: analistas fazem login e caem em `/console`, uma
-  página provisória. Conversas transferidas ficam em `waiting_human` (o agent permanece pausado), mas
-  ainda não há tela para assumir, responder, devolver ao agent ou encerrar.
+- **Console mínimo**: não há atribuição por nível (N1/N2 veem e fazem o mesmo), busca, notificação
+  em tempo real (é polling de 3 s) nem nome do analista em cada mensagem (aparece "Analista"; o nome
+  fica na mensagem `system` de quando assumiu). Conversas criadas antes da migração do console
+  aparecem com o id do funcionário em vez do nome.
 - **Deploy pendente**: o projeto roda só localmente; ainda não há ambiente publicado nem proteção de
   chave e limite de uso em produção além das validações do `env.ts` e do limite por conversa.
 - Feriados não entram no cálculo de prazo (ver "Prazos").
@@ -254,7 +284,8 @@ visível no painel.
 
 ## O que faria com mais tempo
 
-- Console do analista (assumir, responder, devolver ao agent, encerrar), já previsto pelos status.
+- Console: fila por nível N1/N2, SSE em vez de polling, autor de cada mensagem do analista e ações
+  sobre o chamado (comentar, escalar) direto do painel lateral.
 - Eval com mais cenários e várias execuções por cenário, medindo taxa de acerto em vez de um único
   passou/falhou, rodando em CI com orçamento de cota.
 - Edição do rascunho no próprio card e atalho de teclado para confirmar.

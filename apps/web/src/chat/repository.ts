@@ -155,13 +155,14 @@ export function insertMessage(tx: Pick<Db, "insert" | "select">, input: NewMessa
 
 /**
  * Grava a mensagem do funcionário e incrementa o contador na mesma transação. Devolve `null`
- * (sem gravar nada) se a conversa já atingiu o limite de mensagens.
+ * (sem gravar nada) se a conversa já atingiu o limite de mensagens ou não está em `requireStatus`.
  */
 export function appendUserMessage(
   db: Db,
   conversationId: string,
   content: string,
   now: Date,
+  requireStatus?: ConversationStatus,
 ): { message: ChatMessage; userMessageCount: number } | null {
   return db.transaction((tx) => {
     const result = tx
@@ -171,6 +172,7 @@ export function appendUserMessage(
         and(
           eq(conversations.id, conversationId),
           sql`${conversations.userMessageCount} < ${MAX_USER_MESSAGES}`,
+          requireStatus ? eq(conversations.status, requireStatus) : undefined,
         ),
       )
       .run();

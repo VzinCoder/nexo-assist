@@ -3,7 +3,7 @@ import { SESSION_COOKIE, newSession, signSession } from "../auth/session";
 import { createDb, type Db } from "../db/client";
 import { createConversationsHandlers } from "./conversations-handler";
 import type { ConversationDto } from "./dto";
-import { appendMessage, appendUserMessage, createConversation, getOwnedConversation } from "./repository";
+import { appendMessage, appendUserMessage, createConversation, getOwnedConversation, listMessages, setStatus } from "./repository";
 
 const SECRET = "segredo-de-teste-com-mais-de-32-caracteres";
 const now = new Date("2026-11-11T13:00:00.000Z");
@@ -60,5 +60,31 @@ describe("API de conversas", () => {
     expect(body.id).not.toBe(previous.id);
     expect(body.userMessageCount).toBe(0);
     expect(getOwnedConversation(db, previous.id, ana.id)?.status).toBe("closed");
+  });
+
+  async function requestTo(method: "GET" | "POST", who: typeof ana, body?: unknown) {
+    return new Request("http://localhost/api/conversations/x", {
+      method,
+      headers: { cookie: `${SESSION_COOKIE}=${await signSession(newSession(who, now), SECRET)}`, "content-type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  }
+
+  it("busca por id mostra a conversa encerrada só para o dono", async () => {
+    const mine = createConversation(db, ana.id, now);
+    setStatus(db, mine.id, "closed", now);
+    const body = (await (await handlers.getById(await requestTo("GET", ana), mine.id)).json()) as ConversationDto;
+    expect(body.status).toBe("closed");
+    expect((await handlers.getById(await requestTo("GET", carla), mine.id)).status).toBe(404);
+  });
+
+  it("funcionário responde ao analista só com a conversa with_human", async () => {
+    const mine = createConversation(db, ana.id, now);
+    expect((await handlers.postMessage(await requestTo("POST", ana, { text: "oi" }), mine.id)).status).toBe(409);
+    setStatus(db, mine.id, "with_human", now);
+    expect((await handlers.postMessage(await requestTo("POST", carla, { text: "oi" }), mine.id)).status).toBe(404);
+    expect((await handlers.postMessage(await requestTo("POST", ana, { text: "Está ligado." }), mine.id)).status).toBe(201);
+    expect(listMessages(db, mine.id).map((message) => [message.role, message.content])).toEqual([["user", "Está ligado."]]);
+    expect(getOwnedConversation(db, mine.id, ana.id)?.userMessageCount).toBe(1);
   });
 });
