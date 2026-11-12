@@ -17,3 +17,9 @@
 import { PRODUCT_NAME } from "@nexo/shared";
 
 export const AGENT_NAME = `${PRODUCT_NAME} Agent`;
+
+export { createNexoRequestContext, getSessionIds, type NexoSessionIds, type NexoRequestContext } from "./context";
+export type { ConversationStore, DraftStore, NexoAgentDeps } from "./ports";
+export { withTrace, describeError, ToolRefusal, type ToolResult, type ToolErrorCode } from "./trace";
+export { createNexoTools, TOOL_NAMES, type ToolName, type NexoTools } from "./tools";
+export { createMemoryPorts, type MemoryDraft } from "./memory-ports";

@@ -3,31 +3,11 @@ import {
   TicketNotFoundError,
   TicketsUnavailableError,
   createTicketsClient,
-  type FetchLike,
   type TicketsClient,
 } from "@nexo/shared";
-import type { FastifyInstance } from "fastify";
 import { afterEach, describe, expect, it } from "vitest";
 import { MAIN_EMPLOYEE_ID, SEED_TICKETS } from "./seed/data";
-import { TEST_TOKEN, createTestApp, type TestApp } from "./testing";
-
-/** `fetch` que encaminha para `app.inject`: contrato ponta a ponta sem abrir porta. */
-function injectFetch(app: FastifyInstance, calls: { count: number }): FetchLike {
-  return async (input, init) => {
-    calls.count++;
-    const url = new URL(input);
-    const response = await app.inject({
-      method: (init.method ?? "GET") as "GET" | "POST",
-      url: `${url.pathname}${url.search}`,
-      headers: init.headers as Record<string, string>,
-      payload: typeof init.body === "string" ? init.body : undefined,
-    });
-    return new Response(response.body, {
-      status: response.statusCode,
-      headers: { "content-type": String(response.headers["content-type"] ?? "application/json") },
-    });
-  };
-}
+import { TEST_TOKEN, createTestApp, injectFetch, type TestApp } from "./testing";
 
 describe("cliente @nexo/shared × tickets-api", () => {
   let t: TestApp;

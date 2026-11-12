@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@mastra/core": "1.82.0",
-    "@nexo/shared": "workspace:*"
+    "@nexo/shared": "workspace:*",
+    "zod": "^4.6.7"
   }
 }
