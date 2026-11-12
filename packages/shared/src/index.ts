@@ -2,3 +2,4 @@
 export const PRODUCT_NAME = "Nexo Assist";
 
 export * from "./schemas";
+export * from "./rules";
