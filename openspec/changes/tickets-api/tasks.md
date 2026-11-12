@@ -53,7 +53,7 @@
 
 - [x] 11.1 Teste de integração do cliente de `@nexo/shared` contra o `buildApp` via `fetch` que encaminha para `app.inject`: listar, criar, `TicketNotFoundError` para chamado alheio, `TicketConflictError` na reabertura fora da janela e `TicketsUnavailableError` com `failureRate: 1`; verificar que passa em `pnpm test`
 - [x] 11.2 Atualizar o `README.md` com os endpoints, headers exigidos, variáveis de instabilidade, comando de seed e a limitação de feriados; verificar seguindo o README: `pnpm dev`, `curl` em `/tickets` com os headers do seed e com `FAILURE_RATE=0.5` observando 503 ocasionais
-- [ ] 11.3 Rodar `pnpm test`, `pnpm typecheck` e `pnpm build` na raiz e confirmar todos com código 0 e `git status` sem banco nem `.env`
+- [x] 11.3 Rodar `pnpm test`, `pnpm typecheck` e `pnpm build` na raiz e confirmar todos com código 0 e `git status` sem banco nem `.env`
 
 ## Workflow follow-up
 
