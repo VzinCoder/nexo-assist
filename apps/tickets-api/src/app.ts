@@ -1,4 +1,5 @@
 import Fastify, { type FastifyInstance, type FastifyServerOptions } from "fastify";
+import { registerErrorHandlers } from "./plugins/errors";
 
 /**
  * Cria a instância do Fastify com as rotas registradas, sem abrir porta.
@@ -7,14 +8,9 @@ import Fastify, { type FastifyInstance, type FastifyServerOptions } from "fastif
 export function buildApp(options: FastifyServerOptions = {}): FastifyInstance {
   const app = Fastify(options);
 
-  app.get("/health", async () => ({ status: "ok" as const }));
+  registerErrorHandlers(app);
 
-  app.setNotFoundHandler((request, reply) => {
-    void reply.code(404).send({
-      error: "not_found",
-      message: `Rota ${request.method} ${request.url} não existe.`,
-    });
-  });
+  app.get("/health", async () => ({ status: "ok" as const }));
 
   return app;
 }

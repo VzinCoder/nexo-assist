@@ -21,7 +21,7 @@
 ## 5. tickets-api: ambiente e erros
 
 - [x] 5.1 Estender `env.ts` com `NODE_ENV`, `SERVICE_TOKEN` (padrão só fora de produção, ≥ 16 em produção), `DATABASE_FILE`, `FAILURE_RATE` e `LATENCY_MS`; atualizar `.env.example`; verificar com testes de `parseEnv` (padrões, produção sem token, `FAILURE_RATE=1.5`, `LATENCY_MS=-10`)
-- [ ] 5.2 Criar `plugins/errors.ts` (`AppError`, handler de erro para zod/AppError/500 e 404 no formato `{ error: { code, message } }`) e ligar no `buildApp`; verificar atualizando o teste de rota inexistente e adicionando teste de 500 sem stack no corpo
+- [x] 5.2 Criar `plugins/errors.ts` (`AppError`, handler de erro para zod/AppError/500 e 404 no formato `{ error: { code, message } }`) e ligar no `buildApp`; verificar atualizando o teste de rota inexistente e adicionando teste de 500 sem stack no corpo
 
 ## 6. tickets-api: banco
 
