@@ -10,4 +10,6 @@ export default defineConfig({
   sourcemap: true,
   // Pacotes internos exportam TypeScript; precisam ir para dentro do bundle.
   noExternal: [/^@nexo\//],
+  // `node:sqlite` só existe com o prefixo; o padrão do tsup o removeria.
+  removeNodeProtocol: false,
 });

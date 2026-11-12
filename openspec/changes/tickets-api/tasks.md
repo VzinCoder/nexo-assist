@@ -25,7 +25,7 @@
 
 ## 6. tickets-api: banco
 
-- [ ] 6.1 Criar `db/schema.ts` (employees, articles, tickets, ticket_comments), `db/client.ts` (`createDb(file)` com `node:sqlite` + `migrate`) e `paths.ts`; adicionar script `db:generate` e gerar a primeira migração em `drizzle/`; verificar com teste que cria banco `:memory:`, migra e insere/consulta um chamado, e com `pnpm build` + `start` aplicando a migração a partir de `dist/`
+- [x] 6.1 Criar `db/schema.ts` (employees, articles, tickets, ticket_comments), `db/client.ts` (`createDb(file)` com `node:sqlite` + `migrate`) e `paths.ts`; adicionar script `db:generate` e gerar a primeira migração em `drizzle/`; verificar com teste que cria banco `:memory:`, migra e insere/consulta um chamado, e com `pnpm build` + `start` aplicando a migração a partir de `dist/`
 
 ## 7. tickets-api: seed
 
