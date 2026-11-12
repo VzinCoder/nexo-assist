@@ -13,7 +13,7 @@ export default async function ChatPage() {
   const session = await requireSession("chat");
   const db = getDb();
   // A conversa atual é carregada no servidor (última não encerrada, ou uma nova).
-  const conversation = toConversationDto(db, getOrCreateCurrentConversation(db, session.employeeId, new Date()));
+  const conversation = toConversationDto(db, getOrCreateCurrentConversation(db, session.employeeId, new Date(), session.name));
 
   return (
     <div className="flex h-dvh bg-paper">
