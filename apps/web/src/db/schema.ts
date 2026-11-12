@@ -15,14 +15,20 @@ export const conversations = t.sqliteTable(
   {
     id: t.text().primaryKey(),
     employeeId: t.text().notNull(),
+    employeeName: t.text(),
     status: t.text().$type<ConversationStatus>().notNull(),
     handoffReason: t.text(),
     handoffSummary: t.text(),
+    analystId: t.text(),
+    analystName: t.text(),
     userMessageCount: t.integer().notNull().default(0),
     createdAt: t.integer({ mode: "timestamp_ms" }).notNull(),
     updatedAt: t.integer({ mode: "timestamp_ms" }).notNull(),
   },
-  (table) => [t.index("conversations_employee_created_idx").on(table.employeeId, table.createdAt)],
+  (table) => [
+    t.index("conversations_employee_created_idx").on(table.employeeId, table.createdAt),
+    t.index("conversations_status_updated_idx").on(table.status, table.updatedAt),
+  ],
 );
 
 /** Mensagens; `parts`, `trace` e `decision` em JSON texto (validados com zod na leitura). */

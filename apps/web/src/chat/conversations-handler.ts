@@ -16,14 +16,14 @@ export function createConversationsHandlers(deps: Deps) {
       const session = await getSessionFromRequest(request, deps.sessionSecret, now());
       if (!session) return unauthorized();
       const db = deps.getDb();
-      const conversation = getOrCreateCurrentConversation(db, session.employeeId, now());
+      const conversation = getOrCreateCurrentConversation(db, session.employeeId, now(), session.name);
       return Response.json(toConversationDto(db, conversation), { headers: { "cache-control": "no-store" } });
     },
     async create(request: Request): Promise<Response> {
       const session = await getSessionFromRequest(request, deps.sessionSecret, now());
       if (!session) return unauthorized();
       const db = deps.getDb();
-      const conversation = createConversation(db, session.employeeId, now());
+      const conversation = createConversation(db, session.employeeId, now(), session.name);
       return Response.json(toConversationDto(db, conversation), { status: 201 });
     },
   };

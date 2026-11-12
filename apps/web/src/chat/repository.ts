@@ -76,7 +76,12 @@ export function getCurrentConversation(db: Db, employeeId: string): Conversation
  * Cria uma nova conversa `agent`. A atual é encerrada só se estiver com o agent; se estiver com
  * analista (ou aguardando), fica como está.
  */
-export function createConversation(db: Db, employeeId: string, now: Date): Conversation {
+export function createConversation(
+  db: Db,
+  employeeId: string,
+  now: Date,
+  employeeName: string | null = null,
+): Conversation {
   return db.transaction((tx) => {
     tx.update(conversations)
       .set({ status: "closed", updatedAt: now })
@@ -85,9 +90,12 @@ export function createConversation(db: Db, employeeId: string, now: Date): Conve
     const row: Conversation = {
       id: randomUUID(),
       employeeId,
+      employeeName,
       status: "agent",
       handoffReason: null,
       handoffSummary: null,
+      analystId: null,
+      analystName: null,
       userMessageCount: 0,
       createdAt: now,
       updatedAt: now,
@@ -98,8 +106,13 @@ export function createConversation(db: Db, employeeId: string, now: Date): Conve
 }
 
 /** Conversa atual ou, se não houver, uma nova. */
-export function getOrCreateCurrentConversation(db: Db, employeeId: string, now: Date): Conversation {
-  return getCurrentConversation(db, employeeId) ?? createConversation(db, employeeId, now);
+export function getOrCreateCurrentConversation(
+  db: Db,
+  employeeId: string,
+  now: Date,
+  employeeName: string | null = null,
+): Conversation {
+  return getCurrentConversation(db, employeeId) ?? createConversation(db, employeeId, now, employeeName);
 }
 
 /** Conversa só se pertencer ao funcionário; senão `undefined` (a rota responde 404). */
@@ -116,7 +129,7 @@ export function getOwnedConversation(
 }
 
 /** Grava a mensagem nova sempre depois das existentes (o `createdAt` nunca volta no tempo). */
-function insertMessage(tx: Pick<Db, "insert" | "select">, input: NewMessage, now: Date): ChatMessage {
+export function insertMessage(tx: Pick<Db, "insert" | "select">, input: NewMessage, now: Date): ChatMessage {
   const last = tx
     .select({ createdAt: messages.createdAt })
     .from(messages)
