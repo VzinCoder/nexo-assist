@@ -36,8 +36,9 @@ apps/
   web/            @nexo/web          Next: UI + rotas /api/chat, /api/conversations, /api/auth
   tickets-api/    @nexo/tickets-api  Fastify + SQLite próprio + seed
 packages/
-  agent/          @nexo/agent        Mastra agent, tools, prompt, regras puras (SLA, prioridade)
-  shared/         @nexo/shared       schemas zod, tipos, cliente HTTP do tickets-api
+  agent/          @nexo/agent        Mastra agent, tools, prompt, regra de prioridade
+  shared/         @nexo/shared       schemas zod, tipos, cliente HTTP do tickets-api,
+                                     regras puras de prazo (src/rules: SLA, vencimento, reabertura)
 ```
 
 Regras de dependência (não quebrar):
@@ -82,7 +83,8 @@ Estas regras são determinísticas e testadas. Nunca delegar ao prompt:
 2. **Confirmação**: a tool `draft_ticket` só gera um rascunho. A criação real acontece quando o
    funcionário clica em "Confirmar" no card, chamando a API diretamente, sem passar pelo LLM.
 3. **Transferência**: se `conversation.status !== "agent"`, a rota `/api/chat` **não chama o LLM**.
-4. **SLA e vencimento**: calculados por funções puras em `packages/agent/src/rules/`.
+4. **SLA, vencimento e reabertura**: calculados por funções puras em `packages/shared/src/rules/`
+   (usadas pelo `tickets-api`, pelo agent e pelo web).
 5. **Limite**: 30 mensagens do funcionário por sessão, contadas no banco.
 
 Status da conversa: `agent` → `waiting_human` → `with_human` → (`agent` | `closed`).

@@ -12,7 +12,7 @@
 
 - [x] 3.1 Implementar `rules/business-hours.ts` (`addBusinessHours` com `TZDate` em America/Sao_Paulo) e `rules/sla.ts` (`computeDueAt`, `isOverdue`); verificar com testes cobrindo todos os cenários da spec `ticket-sla` (crítica no sábado, virada de dia, sexta → segunda, antes/depois do expediente, domingo, limite exato do `isOverdue`, `resolved`/`closed` nunca vencidos)
 - [x] 3.2 Implementar `rules/reopen.ts` (`isReopenable`, janela de 168 h); verificar com testes em 4 d, 7 d exatos, 7 d + 1 min, status `closed` e status não resolvido
-- [ ] 3.3 Atualizar o `CLAUDE.md` (invariante 4 e estrutura) para `packages/shared/src/rules/`; verificar com busca que não restou menção a `packages/agent/src/rules`
+- [x] 3.3 Atualizar o `CLAUDE.md` (invariante 4 e estrutura) para `packages/shared/src/rules/`; verificar com busca que não restou menção a `packages/agent/src/rules`
 
 ## 4. @nexo/shared: cliente HTTP
 
