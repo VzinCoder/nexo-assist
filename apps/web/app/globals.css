@@ -12,6 +12,15 @@
   --color-ink-3: #5b6472;
   --color-rule: #e6e8ec;
   --color-cta: #0062c4;
+  --color-link: #0069c7;
+  --color-info: #0285f7;
+  --color-amber: #f5a500;
+  --color-amber-ink: #946300;
+  --color-green: #00bd6c;
+  --color-green-ink: #00804a;
+  /* Fora do protótipo (estados de erro/vencido): vermelho sóbrio no mesmo tom da paleta. */
+  --color-danger: #c4352b;
+  --color-danger-ink: #a12a22;
 }
 
 body {

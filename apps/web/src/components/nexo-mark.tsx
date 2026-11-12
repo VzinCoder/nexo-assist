@@ -1,0 +1,11 @@
+/** Marca do Nexo (vetor do protótipo). */
+export function NexoMark({ className, color = "currentColor" }: { className?: string; color?: string }) {
+  return (
+    <svg viewBox="0 0 24.388 20.639" className={className} aria-hidden="true">
+      <path
+        d="M21.763 .245l-3.374 1.687c-.623 .308-.973 .903-.973 1.631v6.293l-11.193-9.429c-.623-.469-1.372-.553-2.03-.245l-3.185 1.631c-.651 .322-1.008 .924-1.008 1.673v15.218c0 1.477 1.526 2.289 2.716 1.785l3.073-1.617c.693-.322 1.057-.952 1.057-1.722v-7.7l11.732 10.591c.602 .546 1.421 .679 2.086 .364l2.786-1.505c.602-.315 .938-.931 .938-1.68v-15.288c0-1.463-1.505-2.275-2.625-1.687z"
+        fill={color}
+      />
+    </svg>
+  );
+}

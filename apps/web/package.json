@@ -19,6 +19,7 @@
     "@nexo/shared": "workspace:*",
     "ai": "7.0.170",
     "drizzle-orm": "1.0.0-rc.5",
+    "lucide-react": "^1.71.0",
     "next": "^16.4.6",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

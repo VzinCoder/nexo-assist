@@ -19,10 +19,10 @@ Cada seção termina com um commit (`git add` de arquivos específicos), feito s
 
 ## 3. Autenticação e login
 
-- [ ] 3.1 Implementar `src/auth/session.ts` (assinar/verificar cookie HMAC-SHA256 com Web Crypto, `exp` de 8 h) e `getSession()` para rotas e páginas; verificar com testes: cookie válido, adulterado, expirado, segredo errado
-- [ ] 3.2 Implementar `src/tickets.ts` (instância do `createTicketsClient` com `env`) e o login (`POST /api/auth/login` ou Server Action): valida com zod, `getEmployeeByEmail`, grava cookie httpOnly/`SameSite=Lax`, devolve destino por papel; `POST /api/auth/logout`; verificar com testes de handler com cliente falso: e-mail do seed → cookie + `/chat`, analista → `/console`, desconhecido → erro sem cookie, `TicketsUnavailableError` → mensagem de indisponível
-- [ ] 3.3 Criar `apps/web/proxy.ts` (Next 16) redirecionando sem sessão para `/login`, por papel entre `/chat` e `/console`, e `/` conforme a sessão; APIs sem sessão → 401; verificar com testes da função de decisão do proxy e manualmente no `pnpm dev`
-- [ ] 3.4 Criar a página `/login` seguindo a tela "Identificação" do Pencil (painel de apresentação + formulário, erros de campo e de serviço, estado enviando) e `/console` placeholder com "Sair"; remover a página "Em construção"; verificar no navegador com `ana.souza@nexo.com.br` e com um analista do seed
+- [x] 3.1 Implementar `src/auth/session.ts` (assinar/verificar cookie HMAC-SHA256 com Web Crypto, `exp` de 8 h) e `getSession()` para rotas e páginas; verificar com testes: cookie válido, adulterado, expirado, segredo errado
+- [x] 3.2 Implementar `src/tickets.ts` (instância do `createTicketsClient` com `env`) e o login (`POST /api/auth/login` ou Server Action): valida com zod, `getEmployeeByEmail`, grava cookie httpOnly/`SameSite=Lax`, devolve destino por papel; `POST /api/auth/logout`; verificar com testes de handler com cliente falso: e-mail do seed → cookie + `/chat`, analista → `/console`, desconhecido → erro sem cookie, `TicketsUnavailableError` → mensagem de indisponível
+- [x] 3.3 Criar `apps/web/proxy.ts` (Next 16) redirecionando sem sessão para `/login`, por papel entre `/chat` e `/console`, e `/` conforme a sessão; APIs sem sessão → 401; verificar com testes da função de decisão do proxy e manualmente no `pnpm dev`
+- [x] 3.4 Criar a página `/login` seguindo a tela "Identificação" do Pencil (painel de apresentação + formulário, erros de campo e de serviço, estado enviando) e `/console` placeholder com "Sair"; remover a página "Em construção"; verificar no navegador com `ana.souza@nexo.com.br` e com um analista do seed
 
 ## 4. Tools do agent com testes
 
