@@ -1,5 +1,6 @@
 import { Agent } from "@mastra/core/agent";
 import type { MastraModelConfig } from "@mastra/core/llm";
+import { StreamErrorRetryProcessor } from "@mastra/core/processors";
 import { AGENT_ID, AGENT_DISPLAY_NAME } from "./constants";
 import { createNexoRequestContext, type NexoSessionIds } from "./context";
 import { buildInstructions } from "./instructions";
@@ -22,6 +23,9 @@ export function createNexoAgent(options: NexoAgentOptions) {
     instructions: () => buildInstructions(deps.now()),
     model,
     tools: createNexoTools(deps),
+    // Sem retry automático no provedor (D7): um 429 repetido só gastaria mais cota do free tier.
+    // Mesmo id do processador padrão, então ele substitui o default; os de reparo continuam.
+    errorProcessors: [new StreamErrorRetryProcessor({ maxRetries: 0 })],
   });
 }
 

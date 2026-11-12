@@ -40,8 +40,8 @@ Cada seção termina com um commit (`git add` de arquivos específicos), feito s
 
 ## 6. /api/chat com streaming e gating
 
-- [ ] 6.1 Implementar `decideChatGate` (puro) e `createChatHandler({ db, tickets, agentFactory, env })` para `POST /api/chat`: sessão, posse (404), status ≠ `agent` (sem LLM, devolve estado), limite 30 (sem gravar), sem chave → "assistente não configurado", grava mensagem do usuário, carrega últimas 12 do banco, `RequestContext` com `employeeId`/`conversationId`, stream convertido para UI message stream, grava resposta com trace/decisão/partes no fim e o passo `llm` com erro em 429/5xx; verificar com testes usando agent falso: não chama o agent em `waiting_human`/`with_human`, 30ª passa e 31ª é bloqueada, conversa de outro → 404, sem sessão → 401, 429 grava passo com erro e mensagem clara, o modelo recebe só 12 mensagens
-- [ ] 6.2 Implementar `GET /api/conversations/current` e `POST /api/conversations`; verificar com testes: devolve só a conversa do dono com `userMessageCount` e mensagens em ordem; nova conversa fecha a anterior `agent`
+- [x] 6.1 Implementar `decideChatGate` (puro) e `createChatHandler({ db, tickets, agentFactory, env })` para `POST /api/chat`: sessão, posse (404), status ≠ `agent` (sem LLM, devolve estado), limite 30 (sem gravar), sem chave → "assistente não configurado", grava mensagem do usuário, carrega últimas 12 do banco, `RequestContext` com `employeeId`/`conversationId`, stream convertido para UI message stream, grava resposta com trace/decisão/partes no fim e o passo `llm` com erro em 429/5xx; verificar com testes usando agent falso: não chama o agent em `waiting_human`/`with_human`, 30ª passa e 31ª é bloqueada, conversa de outro → 404, sem sessão → 401, 429 grava passo com erro e mensagem clara, o modelo recebe só 12 mensagens
+- [x] 6.2 Implementar `GET /api/conversations/current` e `POST /api/conversations`; verificar com testes: devolve só a conversa do dono com `userMessageCount` e mensagens em ordem; nova conversa fecha a anterior `agent`
 
 ## 7. Rascunhos: confirm/discard com testes
 

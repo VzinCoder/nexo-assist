@@ -77,6 +77,15 @@ describe("createNexoAgent + streamNexoReply (modelo falso)", () => {
     expect(turn.decision).toMatchObject({ intent: "other", confidence: "low" });
   });
 
+  it("não repete a chamada ao provedor num 429 (evita gastar cota)", async () => {
+    const rateLimited = Object.assign(new Error("Too Many Requests"), { statusCode: 429, isRetryable: true });
+    const { agent, scripted } = build([{ error: rateLimited }]);
+    const stream = await streamNexoReply(agent, { history: [{ role: "user", content: "oi" }], session });
+    await stream.consumeStream();
+    expect(scripted.calls).toBe(1);
+    expect(stream.error).toBeDefined();
+  });
+
   it("o modelo recebe só as últimas 12 mensagens, com data/hora nas instruções", async () => {
     const { agent, scripted } = build([{ text: "ok" }]);
     const history = Array.from({ length: 25 }, (_, i) => ({
