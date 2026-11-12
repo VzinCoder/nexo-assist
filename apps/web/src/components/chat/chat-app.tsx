@@ -130,14 +130,16 @@ export function ChatApp({ initial, firstName }: { initial: ConversationDto; firs
   const canReply = withAnalyst && !replying && !limitReached;
   const composerEnabled = (conversation.status === "agent" || withAnalyst) && !limitReached;
 
-  // Enquanto estiver com analista, acompanha o estado sem recarregar a página.
+  // Acompanha o estado sem recarregar a página: a cada 3 s com analista; a cada 10 s com o agent
+  // (o analista pode assumir ou encerrar pelo console). Nunca durante o streaming.
+  const pollMs = transferred ? 3000 : conversation.status === "agent" && !busy ? 10_000 : null;
   useEffect(() => {
-    if (!transferred) return;
+    if (pollMs === null) return;
     const timer = window.setInterval(() => {
       refresh().catch(() => undefined);
-    }, 3000);
+    }, pollMs);
     return () => window.clearInterval(timer);
-  }, [transferred, refresh]);
+  }, [pollMs, refresh]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
