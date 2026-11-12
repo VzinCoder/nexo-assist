@@ -5,6 +5,7 @@ import { registerInstability } from "./plugins/instability";
 import { registerServiceAuth } from "./plugins/service-auth";
 import { registerEmployeeRoutes } from "./routes/employees";
 import { registerKbRoutes } from "./routes/kb";
+import { registerTicketRoutes } from "./routes/tickets";
 
 export type AppOptions = {
   db: Db;
@@ -49,6 +50,7 @@ export function buildApp(options: AppOptions): FastifyInstance {
 
     registerEmployeeRoutes(scope, deps);
     registerKbRoutes(scope, deps);
+    registerTicketRoutes(scope, deps);
   });
 
   return app;
