@@ -2,7 +2,7 @@
 
 ## 1. Dependências
 
-- [ ] 1.1 Confirmar via Context7 as APIs atuais de `drizzle-orm` (driver `node-sqlite`, `migrate`, `timestamp_ms`), `drizzle-kit` (`generate`), `@date-fns/tz` (`TZDate`) e `date-fns`; adicionar `drizzle-orm`/`drizzle-kit` ao `tickets-api` e `date-fns`/`@date-fns/tz`/`zod` ao `@nexo/shared`; verificar `pnpm install` sem aviso de build bloqueado e `pnpm typecheck` verde
+- [x] 1.1 Confirmar via Context7 as APIs atuais de `drizzle-orm` (driver `node-sqlite`, `migrate`, `timestamp_ms`), `drizzle-kit` (`generate`), `@date-fns/tz` (`TZDate`) e `date-fns`; adicionar `drizzle-orm`/`drizzle-kit` ao `tickets-api` e `date-fns`/`@date-fns/tz`/`zod` ao `@nexo/shared`; verificar `pnpm install` sem aviso de build bloqueado e `pnpm typecheck` verde
 
 ## 2. @nexo/shared: schemas e tipos
 
