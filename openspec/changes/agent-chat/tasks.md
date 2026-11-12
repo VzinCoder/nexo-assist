@@ -13,9 +13,9 @@ Cada seção termina com um commit (`git add` de arquivos específicos), feito s
 
 ## 2. Persistência do web
 
-- [ ] 2.1 Criar `apps/web/src/db/schema.ts` (conversations, messages, drafts com índices do design D10), `db/client.ts` (`createDb(file)` com `node:sqlite` + `migrate`) e `drizzle.config.ts`; gerar a primeira migração; verificar com teste em `:memory:` que insere e lê conversa, mensagem com `trace`/`decision` JSON e rascunho
-- [ ] 2.2 Criar repositório `src/chat/repository.ts`: `getCurrentConversation(employeeId)`, `createConversation` (fechando a anterior só se `agent`), `getOwnedConversation(id, employeeId)`, `appendUserMessage` (transação com incremento de `userMessageCount`), `appendMessage`, `lastMessages(conversationId, 12)`, `setStatus`, drafts (`insertDraft`, `claimDraft`, `finishDraft`, `releaseDraft`, `discardDraft`, `getOwnedDraft`); verificar com testes: retomar a última não encerrada, nova conversa fecha a anterior `agent` e preserva `waiting_human`, `lastMessages` devolve só 12 em ordem, `claimDraft` concorrente só vence uma vez, posse por `employeeId`
-- [ ] 2.3 Garantir `web.db*` no `.gitignore`; verificar com `git status` limpo após rodar os testes e o dev
+- [x] 2.1 Criar `apps/web/src/db/schema.ts` (conversations, messages, drafts com índices do design D10), `db/client.ts` (`createDb(file)` com `node:sqlite` + `migrate`) e `drizzle.config.ts`; gerar a primeira migração; verificar com teste em `:memory:` que insere e lê conversa, mensagem com `trace`/`decision` JSON e rascunho
+- [x] 2.2 Criar repositório `src/chat/repository.ts`: `getCurrentConversation(employeeId)`, `createConversation` (fechando a anterior só se `agent`), `getOwnedConversation(id, employeeId)`, `appendUserMessage` (transação com incremento de `userMessageCount`), `appendMessage`, `lastMessages(conversationId, 12)`, `setStatus`, drafts (`insertDraft`, `claimDraft`, `finishDraft`, `releaseDraft`, `discardDraft`, `getOwnedDraft`); verificar com testes: retomar a última não encerrada, nova conversa fecha a anterior `agent` e preserva `waiting_human`, `lastMessages` devolve só 12 em ordem, `claimDraft` concorrente só vence uma vez, posse por `employeeId`
+- [x] 2.3 Garantir `web.db*` no `.gitignore`; verificar com `git status` limpo após rodar os testes e o dev
 
 ## 3. Autenticação e login
 

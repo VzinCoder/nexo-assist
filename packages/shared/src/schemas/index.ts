@@ -3,3 +3,4 @@ export * from "./article";
 export * from "./ticket";
 export * from "./errors";
 export * from "./agent";
+export * from "./chat";
