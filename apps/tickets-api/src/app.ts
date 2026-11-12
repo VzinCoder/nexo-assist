@@ -3,6 +3,8 @@ import type { Db } from "./db/client";
 import { registerErrorHandlers } from "./plugins/errors";
 import { registerInstability } from "./plugins/instability";
 import { registerServiceAuth } from "./plugins/service-auth";
+import { registerEmployeeRoutes } from "./routes/employees";
+import { registerKbRoutes } from "./routes/kb";
 
 export type AppOptions = {
   db: Db;
@@ -45,11 +47,9 @@ export function buildApp(options: AppOptions): FastifyInstance {
     });
     registerServiceAuth(scope, options.serviceToken);
 
-    registerProtectedRoutes(scope, deps);
+    registerEmployeeRoutes(scope, deps);
+    registerKbRoutes(scope, deps);
   });
 
   return app;
 }
-
-/** Rotas que exigem token de serviço (preenchidas nas próximas etapas). */
-function registerProtectedRoutes(_scope: FastifyInstance, _deps: RouteDeps): void {}
