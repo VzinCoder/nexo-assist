@@ -58,7 +58,7 @@ Cada seção termina com um commit (`git add` de arquivos específicos), feito s
 
 ## 9. Eval
 
-- [ ] 9.1 Criar `scripts/eval/run.ts` e o script `pnpm eval` na raiz (fora do `pnpm test`): exige `GOOGLE_GENERATIVE_AI_API_KEY` (sai com código ≠ 0 sem ela), usa `createNexoAgent` com o modelo de `LLM_MODEL`, `tickets-api` em memória semeado e portas em memória, pausa de 30 s entre cenários; os 8 cenários do spec `agent-eval` com asserções de tools e `intent`; imprime resultado por cenário e total, código ≠ 0 se algum falhar; verificar que `pnpm test` não o inclui e rodar `pnpm eval` no máximo 2 vezes, registrando o resultado
+- [x] 9.1 Criar `scripts/eval/run.ts` e o script `pnpm eval` na raiz (fora do `pnpm test`): exige `GOOGLE_GENERATIVE_AI_API_KEY` (sai com código ≠ 0 sem ela), usa `createNexoAgent` com o modelo de `LLM_MODEL`, `tickets-api` em memória semeado e portas em memória, pausa de 30 s entre cenários; os 8 cenários do spec `agent-eval` com asserções de tools e `intent`; imprime resultado por cenário e total, código ≠ 0 se algum falhar; verificar que `pnpm test` não o inclui e rodar `pnpm eval` no máximo 2 vezes, registrando o resultado
 
 ## 10. README
 

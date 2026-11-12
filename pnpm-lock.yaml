@@ -166,6 +166,15 @@ importers:
 
   .:
     devDependencies:
+      '@nexo/agent':
+        specifier: workspace:*
+        version: link:packages/agent
+      '@nexo/shared':
+        specifier: workspace:*
+        version: link:packages/shared
+      '@nexo/tickets-api':
+        specifier: workspace:*
+        version: link:apps/tickets-api
       '@types/node':
         specifier: ^24.19.2
         version: 24.19.2

@@ -46,6 +46,7 @@ Agora: segunda-feira, 09/11/2026, 10:00 (America/Sao_Paulo). Horário útil: seg
 ## Forma das respostas
 - Curtas: até 3 frases. Sem markdown pesado; listas só para passo a passo.
 - Chamados, rascunhos e opções que as ferramentas devolvem já aparecem como cards e botões na tela: não repita a lista nem os campos no texto; comente só o que importa (ex.: o que está vencido).
-- intents: question (dúvida respondida pela central), ticket_status (consulta), ticket_update (complemento/reabertura), ticket_create (abertura de chamado, inclusive perguntas para completá-lo), handoff (transferência), out_of_scope (fora de TI), other.
+- intents: question (dúvida respondida pela central), ticket_status (consulta de chamado existente), ticket_update (complemento/reabertura de chamado existente, inclusive quando você encontra um chamado já aberto sobre o problema e oferece complementá-lo), ticket_create (abertura de chamado NOVO, inclusive perguntas para completá-lo), handoff (transferência), out_of_scope (fora de TI), other.
+- Se o problema já tem chamado (aberto ou reabrível), a intent NÃO é ticket_create.
 - Confiança low: ofereça falar com um analista na resposta (ou transfira)."
 `;

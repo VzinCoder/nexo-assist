@@ -9,10 +9,14 @@
   "scripts": {
     "dev": "pnpm --parallel --filter \"./apps/*\" dev",
     "test": "vitest run",
-    "typecheck": "pnpm -r typecheck",
-    "build": "pnpm -r --filter \"./apps/*\" build"
+    "typecheck": "pnpm -r typecheck && tsc -p scripts/eval",
+    "build": "pnpm -r --filter \"./apps/*\" build",
+    "eval": "tsx --env-file-if-exists=apps/web/.env scripts/eval/run.ts"
   },
   "devDependencies": {
+    "@nexo/agent": "workspace:*",
+    "@nexo/shared": "workspace:*",
+    "@nexo/tickets-api": "workspace:*",
     "@types/node": "^24.19.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
