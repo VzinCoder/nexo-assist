@@ -15,6 +15,7 @@ import {
   isFinished,
   isReopenable,
   ticketIdSchema,
+  toTicketCard,
   type CreateDraftPayload,
   type Decision,
   type DraftKind,
@@ -44,20 +45,7 @@ export type ToolName = (typeof TOOL_NAMES)[number];
 
 type ExecuteContext = { requestContext?: { get(key: string): unknown } } | undefined;
 
-function toCard(ticket: TicketSummary): TicketCard {
-  return {
-    id: ticket.id,
-    type: ticket.type,
-    title: ticket.title,
-    category: ticket.category,
-    priority: ticket.priority,
-    status: ticket.status,
-    createdAt: ticket.createdAt,
-    updatedAt: ticket.updatedAt,
-    dueAt: ticket.dueAt,
-    isOverdue: ticket.isOverdue,
-  };
-}
+const toCard = (ticket: TicketSummary): TicketCard => toTicketCard(ticket);
 
 const traceCard = (ticket: TicketCard) => ({
   id: ticket.id,

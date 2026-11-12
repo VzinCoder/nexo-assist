@@ -44,6 +44,22 @@ export const ticketCardSchema = z.object({
 });
 export type TicketCard = z.infer<typeof ticketCardSchema>;
 
+/** Resume um chamado do tickets-api para card (descarta descrição e comentários). */
+export function toTicketCard(ticket: TicketCard & Record<string, unknown>): TicketCard {
+  return {
+    id: ticket.id,
+    type: ticket.type,
+    title: ticket.title,
+    category: ticket.category,
+    priority: ticket.priority,
+    status: ticket.status,
+    createdAt: ticket.createdAt,
+    updatedAt: ticket.updatedAt,
+    dueAt: ticket.dueAt,
+    isOverdue: ticket.isOverdue,
+  };
+}
+
 /** Conteúdo do rascunho de chamado novo: campos do chamado + prazo calculado. */
 export const createDraftPayloadSchema = createTicketBodySchema.extend({
   dueAt: z.string(),

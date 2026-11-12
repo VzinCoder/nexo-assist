@@ -45,8 +45,8 @@ Cada seção termina com um commit (`git add` de arquivos específicos), feito s
 
 ## 7. Rascunhos: confirm/discard com testes
 
-- [ ] 7.1 Implementar `POST /api/drafts/:id/confirm` (posse → 404; conversa `closed` → 409; `claimDraft` → 409 se não `pending`; executa `createTicket`/`addComment`/`reopenTicket` pelo cliente; sucesso → `confirmed` + `ticketId` + mensagem `system` com card; falha → `releaseDraft` e 503/409 com mensagem) sem nenhuma referência ao agent; verificar com testes de cliente falso: cria uma única vez, segunda confirmação → 409, duas confirmações paralelas → 1 chamada ao cliente, draft de outro → 404, indisponível → 503 e draft volta `pending`, 409 do serviço repassa o motivo, conversa `waiting_human` ainda confirma
-- [ ] 7.2 Implementar `POST /api/drafts/:id/discard`; verificar com testes: `discarded` sem chamar cliente, já confirmado → 409, de outro → 404
+- [x] 7.1 Implementar `POST /api/drafts/:id/confirm` (posse → 404; conversa `closed` → 409; `claimDraft` → 409 se não `pending`; executa `createTicket`/`addComment`/`reopenTicket` pelo cliente; sucesso → `confirmed` + `ticketId` + mensagem `system` com card; falha → `releaseDraft` e 503/409 com mensagem) sem nenhuma referência ao agent; verificar com testes de cliente falso: cria uma única vez, segunda confirmação → 409, duas confirmações paralelas → 1 chamada ao cliente, draft de outro → 404, indisponível → 503 e draft volta `pending`, 409 do serviço repassa o motivo, conversa `waiting_human` ainda confirma
+- [x] 7.2 Implementar `POST /api/drafts/:id/discard`; verificar com testes: `discarded` sem chamar cliente, já confirmado → 409, de outro → 404
 
 ## 8. UI do chat e trace
 
